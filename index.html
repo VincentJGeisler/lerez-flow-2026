@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07121d" />
+    <title>Lérez Flow — Pontevedra 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="overflow-hidden bg-slate-950 font-sans text-slate-100 antialiased">
+    <main id="app" class="relative h-[100dvh] w-full overflow-hidden" aria-label="Lérez tidal current planning visualization">
+      <div id="map" aria-label="Interactive map of the Río Lérez swim course"></div>
+
+      <header class="app-header pointer-events-none absolute inset-x-0 top-0 z-[700] flex items-start justify-between p-4 sm:p-6">
+        <div class="pointer-events-auto">
+          <div class="flex items-center gap-2">
+            <span class="inline-block h-2.5 w-2.5 rounded-full bg-cyan-300 shadow-[0_0_16px_3px_rgba(103,232,249,.65)]"></span>
+            <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-200">Flow intelligence</p>
+          </div>
+          <h1 class="mt-1 text-xl font-semibold tracking-tight text-white sm:text-2xl">Lérez Flow <span class="font-normal text-slate-400">/ Pontevedra 2026</span></h1>
+          <p class="mt-1 text-xs text-slate-300">World Triathlon Championships · Saturday, 26 September</p>
+        </div>
+        <button id="recenter-button" class="glass-button pointer-events-auto hidden sm:flex" type="button" title="Recenter swim course" aria-label="Recenter swim course">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v4m0 12v4M2 12h4m12 0h4M6.4 6.4l2.8 2.8m5.6 5.6 2.8 2.8m0-11.2-2.8 2.8m-5.6 5.6-2.8 2.8"/></svg>
+          <span>Course view</span>
+        </button>
+      </header>
+
+      <section class="hud-panel absolute right-4 top-28 z-[700] w-[min(22rem,calc(100%-2rem))] sm:right-6 sm:top-32" aria-label="Live telemetry">
+        <div class="flex items-start justify-between gap-3 border-b border-white/10 pb-4">
+          <div>
+            <p class="eyebrow">Race-morning telemetry</p>
+            <time id="hud-time" class="mt-1 block font-mono text-3xl font-semibold tracking-tight text-white">05:00 AM</time>
+          </div>
+          <span id="data-badge" class="data-badge">SIMULATED SCENARIO</span>
+        </div>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-4 py-4">
+          <div>
+            <p class="eyebrow">Tide stage</p>
+            <p id="tide-stage" class="metric-text">Low water</p>
+            <p id="tide-detail" class="mt-0.5 text-xs text-slate-400">0% full</p>
+          </div>
+          <div>
+            <p class="eyebrow">Water temp</p>
+            <p id="water-temp" class="metric-text">18.5°C</p>
+            <p id="water-temp-f" class="mt-0.5 text-xs text-slate-400">65.3°F</p>
+          </div>
+          <div class="col-span-2 rounded-xl border border-cyan-300/10 bg-cyan-300/[.06] px-3 py-2.5">
+            <p class="eyebrow text-cyan-200/80">Channel current</p>
+            <p id="current-speed" class="mt-0.5 font-mono text-xl font-semibold text-cyan-100">0.0 <span class="font-sans text-sm font-normal text-cyan-100/70">m/s</span></p>
+            <p id="current-direction" class="mt-0.5 text-xs font-medium text-cyan-200">Slack water</p>
+          </div>
+          <div class="col-span-2 grid grid-cols-2 gap-2 text-[10px]">
+            <div class="flow-readout flow-readout-core"><span>Mid-channel</span><strong id="core-flow">0.0 m/s</strong></div>
+            <div class="flow-readout"><span>River edges</span><strong id="edge-flow">0.0 m/s</strong></div>
+          </div>
+        </div>
+        <div class="strategy-box">
+          <p class="eyebrow text-amber-200/90">Strategy call</p>
+          <p id="strategy-text" class="mt-1.5 text-sm leading-5 text-slate-100">Slack water. Use the cleanest line and settle into rhythm before the flood builds.</p>
+        </div>
+      </section>
+
+      <section class="legend-panel absolute bottom-44 left-4 z-[700] hidden sm:block" aria-label="Map legend">
+        <p class="eyebrow mb-2">Water temperature</p>
+        <div class="temperature-legend"></div>
+        <div class="mt-1 flex justify-between text-[10px] text-slate-300"><span>18.5°C</span><span>16.5°C</span></div>
+        <div class="mt-4 flex items-center gap-2 text-xs text-slate-200"><span class="course-swatch"></span> Outbound · clockwise</div>
+        <div class="mt-2 flex items-center gap-2 text-xs text-slate-200"><span class="return-swatch"></span> Return to exit</div>
+        <div class="mt-2 flex items-center gap-2 text-xs text-slate-200"><span class="particle-swatch">→</span> Tidal flow</div>
+        <div class="mt-2 flex items-center gap-2 text-xs text-slate-200"><span class="flow-core-swatch"></span> Faster core</div>
+        <div class="mt-2 flex items-center gap-2 text-xs text-slate-300"><span class="flow-edge-swatch"></span> Sheltered edges</div>
+      </section>
+
+      <section class="control-dock absolute inset-x-0 bottom-0 z-[750] mx-auto max-w-5xl" aria-label="Timeline playback controls">
+        <div class="dock-inner">
+          <div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+            <button id="play-button" class="control-button control-button-primary" type="button" aria-label="Play timeline" title="Play timeline">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7V5Z"/></svg>
+            </button>
+            <button id="pause-button" class="control-button" type="button" aria-label="Pause timeline" title="Pause timeline">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14m8-14v14"/></svg>
+            </button>
+            <button id="reset-button" class="control-button" type="button" aria-label="Reset timeline to 5 AM" title="Reset timeline">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M4.6 10A8 8 0 1 1 6.9 18"/></svg>
+            </button>
+          </div>
+          <div class="order-3 flex w-full items-center gap-3 sm:order-2 sm:w-auto sm:flex-1">
+            <span class="font-mono text-xs font-medium text-slate-300">05:00</span>
+            <div class="timeline-wrap">
+              <input id="timeline" type="range" min="300" max="720" step="1" value="300" aria-label="Race morning timeline from 5 AM to noon" />
+              <div id="event-ticks" class="event-ticks" aria-hidden="true"></div>
+            </div>
+            <span class="font-mono text-xs font-medium text-slate-300">12:00</span>
+          </div>
+          <button id="speed-button" class="speed-button order-2 sm:order-3" type="button" aria-label="Playback speed 1 times" title="Change playback speed">1×</button>
+        </div>
+        <div id="event-label" class="event-label" aria-live="polite">Low tide · 05:15</div>
+        <p class="dock-disclaimer">Planning visualization only — not for navigation or race safety. Schedule subject to official race briefing.</p>
+      </section>
+      <div id="live-region" class="sr-only" aria-live="polite"></div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="app.js" defer></script>
+  </body>
+</html>
