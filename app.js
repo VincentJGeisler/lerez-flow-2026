@@ -4,7 +4,7 @@
 
   const RACE_DATE = '2026-09-26';
   const START_MINUTE = 300;
-  const END_MINUTE = 720;
+  const END_MINUTE = 840;
   // Río Lérez thalweg: used for tidal particles only, never as the swim route.
   const FLOW_AXIS = [
     [42.4344, -8.6366], [42.43455, -8.63595], [42.43505, -8.63490],
@@ -45,7 +45,13 @@
     { minute: 600, tempC: 16.6, speed: 0.45, direction: 'upstream', tidePercent: 95 },
     { minute: 660, tempC: 16.5, speed: 0.15, direction: 'upstream', tidePercent: 99 },
     { minute: 690, tempC: 16.5, speed: 0.0, direction: 'slack', tidePercent: 100 }, // high tide
-    { minute: 720, tempC: 16.5, speed: 0.0, direction: 'slack', tidePercent: 100 }
+    // Post-high-tide planning extension for late start windows. These are a
+    // scenario continuation, not an official current forecast for the river.
+    { minute: 720, tempC: 16.5, speed: 0.10, direction: 'downstream', tidePercent: 98 },
+    { minute: 750, tempC: 16.6, speed: 0.24, direction: 'downstream', tidePercent: 94 },
+    { minute: 780, tempC: 16.7, speed: 0.38, direction: 'downstream', tidePercent: 88 },
+    { minute: 810, tempC: 16.8, speed: 0.50, direction: 'downstream', tidePercent: 80 },
+    { minute: 840, tempC: 16.9, speed: 0.58, direction: 'downstream', tidePercent: 70 }
   ];
   const EVENTS = [
     { minute: 315, label: 'Low tide · 05:15' },
@@ -59,7 +65,7 @@
   const lerp = (from, to, amount) => from + (to - from) * amount;
   const toRadians = degrees => degrees * Math.PI / 180;
   const toDegrees = radians => radians * 180 / Math.PI;
-  const localDate = new Date(`${RACE_DATE}T12:00:00+02:00`);
+  const localDate = new Date(`${RACE_DATE}T14:00:00+02:00`);
 
   function timeLabel(minute) {
     const hour = Math.floor(minute / 60);
@@ -106,7 +112,7 @@
     constructor() { this.cacheKey = `lerez-flow-model-${RACE_DATE}`; }
     inForecastWindow() {
       const daysAway = (localDate - new Date()) / 86400000;
-      return daysAway >= -1 && daysAway <= 16;
+      return daysAway >= -1 && daysAway <= 8;
     }
     cache() {
       try {
@@ -146,7 +152,7 @@
       if (fields.some(field => hourly[field].length !== hourly.time.length)) throw new Error('Mismatched model response');
       const bearing = riverBearing();
       const rows = hourly.time.map((time, index) => ({ time, index })).filter(row => {
-        const hour = Number(row.time.slice(11, 13)); return row.time.startsWith(RACE_DATE) && hour >= 5 && hour <= 12;
+        const hour = Number(row.time.slice(11, 13)); return row.time.startsWith(RACE_DATE) && hour >= 5 && hour <= 14;
       });
       if (rows.length < 8) throw new Error('Model does not cover the race morning');
       const levels = rows.map(row => hourly.sea_level_height_msl[row.index]);
@@ -496,10 +502,13 @@
       const badge = this.el['data-badge'];
       badge.className = `data-badge ${result.mode === 'live' ? 'live' : result.mode === 'cached' ? 'cached' : ''}`;
       badge.textContent = 'Hydrographic data prediction';
-      badge.title = result.updated ? `Updated ${new Date(result.updated).toLocaleString()}` : 'Exact scenario supplied for race-morning planning';
+      badge.title = result.updated
+        ? `Open-Meteo Marine model updated ${new Date(result.updated).toLocaleString()}`
+        : 'Race-day planning scenario; not an official tide prediction.';
     }
     strategy(sample) {
       if (sample.speed < .05) return sample.tidePercent > 95 ? 'High water and slack. Reset your pacing expectations, choose a clean sight line, and prepare for changing conditions.' : 'Slack water. Use the cleanest line and settle into rhythm before the flood builds.';
+      if (sample.direction === 'downstream') return 'Ebb tide is underway. Expect the current to favour the downstream leg and adjust sighting and pacing for the return.';
       if (sample.minute < 420) return 'The flood is building. The upstream leg gains an assist; save enough to stay composed against the head-current return.';
       if (sample.minute < 510) return 'High buoyancy advantage. Upstream leg will feel fast. Prepare for a hard head-current fight on the downstream return leg.';
       if (sample.minute < 555) return 'Peak flood: the course has its strongest split. Do not overpace with the upstream assist; control effort for the return.';
