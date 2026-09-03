@@ -14,7 +14,8 @@ python3 -m http.server 3000 --bind 127.0.0.1
 
 Open http://127.0.0.1:3000 and use the playback dock or slider to move from
 05:00 to 12:00. The page loads Leaflet, Tailwind, direct OpenStreetMap tiles,
-and Google Fonts from CDNs.
+and Google Fonts from CDNs. Playback begins at 0.5×; its speed control cycles
+through 0.25×, 0.5×, 1×, 2×, and 5×.
 
 ## Map and course
 

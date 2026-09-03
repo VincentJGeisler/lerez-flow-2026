@@ -524,7 +524,7 @@
 
   class PlaybackController {
     constructor(onChange) {
-      this.minute = START_MINUTE; this.speed = 1; this.playing = false; this.onChange = onChange; this.last = 0; this.frame = 0;
+      this.minute = START_MINUTE; this.speed = .5; this.playing = false; this.onChange = onChange; this.last = 0; this.frame = 0;
       this.slider = document.getElementById('timeline'); this.speedButton = document.getElementById('speed-button');
       document.getElementById('play-button').addEventListener('click', () => this.play());
       document.getElementById('pause-button').addEventListener('click', () => this.pause());
@@ -536,7 +536,11 @@
     play() { if (this.minute >= END_MINUTE) this.minute = START_MINUTE; this.playing = true; this.last = performance.now(); this.frame = requestAnimationFrame(time => this.tick(time)); }
     pause() { this.playing = false; cancelAnimationFrame(this.frame); }
     reset() { this.pause(); this.minute = START_MINUTE; this.emit(true); }
-    cycleSpeed() { this.speed = this.speed === 1 ? 2 : this.speed === 2 ? 5 : 1; this.speedButton.textContent = `${this.speed}×`; this.speedButton.setAttribute('aria-label', `Playback speed ${this.speed} times`); }
+    cycleSpeed() {
+      const speeds = [.25, .5, 1, 2, 5]; const current = speeds.indexOf(this.speed);
+      this.speed = speeds[(current + 1) % speeds.length];
+      this.speedButton.textContent = `${this.speed}×`; this.speedButton.setAttribute('aria-label', `Playback speed ${this.speed} times`);
+    }
     tick(now) {
       if (!this.playing) return;
       const seconds = Math.min((now - this.last) / 1000, .2); this.last = now;
