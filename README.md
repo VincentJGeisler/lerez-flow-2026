@@ -1,17 +1,40 @@
 # Lérez Flow — Pontevedra 2026
 
-A zero-build, standalone map visualization of a simulated race-morning tide and temperature scenario for the Río Lérez.
+A zero-build, standalone map visualization of race-morning tidal-current and
+water-temperature conditions for the Río Lérez during the 2026 World Triathlon
+Championships in Pontevedra.
 
-The current swim-course trace is unverified and is not ready for presentation as
-the official course. See [the route-overlay handoff](CHANGELOG.md) for the
-failure analysis, official-reference evidence, and the required replacement
-method.
+**Live site:** https://vincentjgeisler.github.io/lerez-flow-2026/
 
-Open `index.html` from a static server (for example `npx serve .`) and use the playback dock or slider to move from 05:00 to 12:00. The page loads Leaflet, Tailwind, direct OpenStreetMap tiles, and Google Fonts from CDNs.
+## Run locally
+
+```sh
+python3 -m http.server 3000 --bind 127.0.0.1
+```
+
+Open http://127.0.0.1:3000 and use the playback dock or slider to move from
+05:00 to 12:00. The page loads Leaflet, Tailwind, direct OpenStreetMap tiles,
+and Google Fonts from CDNs.
+
+## Map and course
+
+- Direct OpenStreetMap tiles provide the API-key-free basemap.
+- The cyan dashed line is the clockwise outbound swim leg; violet is the return
+  to the exit. The two legs are constrained to the same water mask used by the
+  visual overlays so they remain inside the channel across map zoom levels.
+- The visible course is a planning trace aligned to the published athlete-guide
+  diagram. It is not organizer-supplied GPS geometry and must not be used for
+  navigation or safety decisions.
+- The legend shows water temperature, the two course legs, and tidal flow.
 
 ## Data source behavior
 
-The supplied race-day values are the deterministic fallback and are kept exactly at their specified timestamps. When 26 September 2026 is within Open-Meteo Marine’s available forecast horizon, the browser attempts to request a current regional model (sea-surface temperature, current velocity/direction, and sea level), caches a valid result, and marks it as live or cached in the HUD. Otherwise it remains visibly labelled **SIMULATED SCENARIO**.
+The supplied race-day values are the deterministic fallback and are kept exactly
+at their specified timestamps. When 26 September 2026 is within Open-Meteo
+Marine’s available forecast horizon, the browser attempts to request a current
+regional model (sea-surface temperature, current velocity/direction, and sea
+level) and caches a valid result. The HUD identifies this data area as
+**Hydrographic data prediction**.
 
 Open-Meteo’s marine grid is coarse relative to the Río Lérez and must be treated as planning context, never a navigation, safety, or official race decision source. See [Open-Meteo Marine Weather API](https://open-meteo.com/en/docs/marine-weather-api) for model details and attribution.
 
