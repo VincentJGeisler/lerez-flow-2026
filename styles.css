@@ -18,7 +18,7 @@ body { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; }
 .legend-panel { border-radius: 14px; padding: 13px; width: 150px; }
 .eyebrow { color: #8ca7b8; font-size: 10px; font-weight: 800; letter-spacing: .15em; line-height: 1.1; text-transform: uppercase; }
 .metric-text { margin-top: 4px; font-family: 'DM Mono', ui-monospace, monospace; font-size: 17px; font-weight: 500; color: #f1f8f9; }
-.data-badge { max-width: 118px; border: 1px solid rgba(103,232,249,.25); border-radius: 999px; background: rgba(34,211,238,.1); color: #bdf8ff; font-size: 9px; font-weight: 800; letter-spacing: .08em; line-height: 1; padding: 7px 8px; text-align: center; }
+.data-badge { max-width: 148px; border: 1px solid rgba(103,232,249,.25); border-radius: 999px; background: rgba(34,211,238,.1); color: #bdf8ff; font-size: 9px; font-weight: 800; letter-spacing: .08em; line-height: 1; padding: 7px 8px; text-align: center; }
 .data-badge.live { border-color: rgba(134,239,172,.3); background: rgba(74,222,128,.1); color: #bbf7d0; }
 .data-badge.cached { border-color: rgba(196,181,253,.3); background: rgba(167,139,250,.1); color: #ddd6fe; }
 .strategy-box { border: 1px solid rgba(251,191,36,.16); border-radius: 12px; background: linear-gradient(120deg, rgba(217,119,6,.16), rgba(251,191,36,.04)); padding: 12px; }
@@ -29,9 +29,6 @@ body { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; }
 .course-swatch { display: inline-block; width: 24px; border-top: 3px solid #74f0f1; border-radius: 99px; box-shadow: 0 0 8px #22d3ee; }
 .return-swatch { display: inline-block; width: 24px; border-top: 3px dashed #c4b5fd; border-radius: 99px; }
 .particle-swatch { align-items: center; background: rgba(34,211,238,.14); border: 1px solid rgba(103,232,249,.34); border-radius: 99px; color: #b5f8ff; display: inline-flex; font-weight: 700; height: 18px; justify-content: center; width: 26px; }
-.flow-core-swatch, .flow-edge-swatch { border-radius: 99px; display: inline-block; height: 4px; width: 26px; }
-.flow-core-swatch { background: #8cf7ff; box-shadow: 0 0 7px #22d3ee; }
-.flow-edge-swatch { background: #b8a6eb; opacity: .7; }
 
 .glass-button { align-items: center; border: 1px solid rgba(255,255,255,.13); border-radius: 10px; background: rgba(8,22,35,.86); color: #d6edf0; font-size: 12px; font-weight: 700; gap: 7px; padding: 10px 12px; backdrop-filter: blur(12px); }
 .glass-button svg, .control-button svg { fill: none; height: 17px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; width: 17px; }

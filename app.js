@@ -495,7 +495,7 @@
     source(result) {
       const badge = this.el['data-badge'];
       badge.className = `data-badge ${result.mode === 'live' ? 'live' : result.mode === 'cached' ? 'cached' : ''}`;
-      badge.textContent = result.mode === 'live' ? 'LIVE MODEL' : result.mode === 'cached' ? 'CACHED MODEL' : 'SIMULATED SCENARIO';
+      badge.textContent = 'Hydrographic data prediction';
       badge.title = result.updated ? `Updated ${new Date(result.updated).toLocaleString()}` : 'Exact scenario supplied for race-morning planning';
     }
     strategy(sample) {
