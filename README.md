@@ -30,6 +30,13 @@ through 0.25×, 0.5×, 1×, 2×, and 5×.
 
 ## Data source behavior
 
+| Data | Source | How this app uses it |
+| --- | --- | --- |
+| Race-day baseline | Supplied event-planning keyframes | Deterministic fallback outside the live-model window. |
+| Astronomical tide | [Instituto Hidrográfico de la Marina — 2026 Marín table](https://armada.defensa.gob.es/ihm/Documentacion/Mareas/2026/Marin1.pdf) | Official reference for checking high/low tide times; it is not queried by the browser. |
+| Short-range Spanish coastal forecast | [Puertos del Estado Oceanography](https://www.puertos.es/en/services/oceanography) | Official operational reference for sea level, currents, and temperature. |
+| Browser-loaded model | [Open-Meteo Marine](https://open-meteo.com/en/docs/marine-weather-api) | Requested only when race day is inside its eight-day forecast horizon. |
+
 The supplied race-day values are the deterministic planning fallback and are
 kept exactly at their specified timestamps. The 12:00–14:00 values are an
 explicit post-high-tide scenario extension for late starts; they are not an
@@ -40,11 +47,6 @@ horizon, the browser requests its regional model for sea-surface temperature,
 current velocity/direction, and sea-level height, then caches a valid result.
 The HUD identifies this data area as **Hydrographic data prediction** and its
 tooltip identifies whether the input is a current model or the planning scenario.
-
-For the authoritative astronomical-tide reference, use the Spanish Navy’s
-[Instituto Hidrográfico de la Marina 2026 Marín tide table](https://armada.defensa.gob.es/ihm/Documentacion/Mareas/2026/Marin1.pdf).
-The closest official operational source for short-horizon Spanish coastal sea
-level, currents, and temperature is [Puertos del Estado Oceanography](https://www.puertos.es/en/services/oceanography).
 
 Open-Meteo’s marine grid is coarse relative to the Río Lérez and must be treated as planning context, never a navigation, safety, or official race decision source. See [Open-Meteo Marine Weather API](https://open-meteo.com/en/docs/marine-weather-api) for model details and attribution.
 
