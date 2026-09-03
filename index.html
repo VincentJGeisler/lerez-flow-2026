@@ -21,7 +21,11 @@
             <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-200">Flow intelligence</p>
           </div>
           <h1 class="mt-1 text-xl font-semibold tracking-tight text-white sm:text-2xl">Lérez Flow <span class="font-normal text-slate-400">/ Pontevedra 2026</span></h1>
-          <p class="mt-1 text-xs text-slate-300">World Triathlon Championships · Saturday, 26 September</p>
+          <p id="event-date" class="mt-1 text-xs text-slate-300">World Triathlon Championships · Saturday, 26 September</p>
+          <div class="day-switch mt-3" role="group" aria-label="Race day">
+            <button class="active" type="button" data-race-day="standard" aria-pressed="true"><span>Standard</span><small>Sat 26</small></button>
+            <button type="button" data-race-day="sprint" aria-pressed="false"><span>Sprint</span><small>Thu 24</small></button>
+          </div>
         </div>
         <button id="recenter-button" class="glass-button pointer-events-auto hidden sm:flex" type="button" title="Recenter swim course" aria-label="Recenter swim course">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v4m0 12v4M2 12h4m12 0h4M6.4 6.4l2.8 2.8m5.6 5.6 2.8 2.8m0-11.2-2.8 2.8m-5.6 5.6-2.8 2.8"/></svg>
@@ -32,8 +36,8 @@
       <section class="hud-panel absolute right-4 top-28 z-[700] w-[min(22rem,calc(100%-2rem))] sm:right-6 sm:top-32" aria-label="Live telemetry">
         <div class="flex items-start justify-between gap-3 border-b border-white/10 pb-4">
           <div>
-            <p class="eyebrow">Race-morning telemetry</p>
-            <time id="hud-time" class="mt-1 block font-mono text-3xl font-semibold tracking-tight text-white">05:00 AM</time>
+            <p id="event-context" class="eyebrow">Standard distance · 1,500 m · 1 lap</p>
+            <time id="hud-time" class="mt-1 block font-mono text-3xl font-semibold tracking-tight text-white">06:00 AM</time>
           </div>
           <span id="data-badge" class="data-badge">Hydrographic data prediction</span>
         </div>
@@ -61,6 +65,7 @@
         <div class="strategy-box">
           <p class="eyebrow text-amber-200/90">Strategy call</p>
           <p id="strategy-text" class="mt-1.5 text-sm leading-5 text-slate-100">Slack water. Use the cleanest line and settle into rhythm before the flood builds.</p>
+          <a class="safety-guidance-link" href="safety.html" target="_blank" rel="noopener">River safety guidance <span aria-hidden="true">↗</span></a>
         </div>
       </section>
 
@@ -73,7 +78,7 @@
         <div class="mt-2 flex items-center gap-2 text-xs text-slate-200"><span class="particle-swatch">→</span> Tidal flow</div>
       </section>
 
-      <section class="control-dock absolute inset-x-0 bottom-0 z-[750] mx-auto max-w-5xl" aria-label="Timeline playback controls">
+      <section class="control-dock absolute bottom-0 left-0 z-[750] w-full max-w-xl" aria-label="Timeline playback controls">
         <div class="dock-inner">
           <div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <button id="play-button" class="control-button control-button-primary" type="button" aria-label="Play timeline" title="Play timeline">
@@ -82,21 +87,25 @@
             <button id="pause-button" class="control-button" type="button" aria-label="Pause timeline" title="Pause timeline">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14m8-14v14"/></svg>
             </button>
-            <button id="reset-button" class="control-button" type="button" aria-label="Reset timeline to 5 AM" title="Reset timeline">
+            <button id="reset-button" class="control-button" type="button" aria-label="Reset timeline to 6 AM" title="Reset timeline">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M4.6 10A8 8 0 1 1 6.9 18"/></svg>
             </button>
           </div>
           <div class="order-3 flex w-full items-center gap-3 sm:order-2 sm:w-auto sm:flex-1">
-            <span class="font-mono text-xs font-medium text-slate-300">05:00</span>
+            <span id="timeline-start" class="font-mono text-xs font-medium text-slate-300">06:00</span>
             <div class="timeline-wrap">
-              <input id="timeline" type="range" min="300" max="840" step="1" value="300" aria-label="Race morning timeline from 5 AM to 2 PM" />
+              <input id="timeline" type="range" min="360" max="1080" step="1" value="360" aria-label="Race-day timeline from 6 AM to 6 PM" />
               <div id="event-ticks" class="event-ticks" aria-hidden="true"></div>
             </div>
-            <span class="font-mono text-xs font-medium text-slate-300">14:00</span>
+            <span id="timeline-end" class="font-mono text-xs font-medium text-slate-300">18:00</span>
           </div>
           <button id="speed-button" class="speed-button order-2 sm:order-3" type="button" aria-label="Playback speed 0.5 times" title="Change playback speed">0.5×</button>
+          <div class="zoom-controls order-2 sm:order-4" role="group" aria-label="Map zoom controls">
+            <button id="zoom-out-button" class="control-button map-zoom-button" type="button" aria-label="Zoom out" title="Zoom out">−</button>
+            <button id="zoom-in-button" class="control-button map-zoom-button" type="button" aria-label="Zoom in" title="Zoom in">+</button>
+          </div>
         </div>
-        <div id="event-label" class="event-label" aria-live="polite">Low tide · 05:15</div>
+        <div id="event-label" class="event-label" aria-live="polite">Flood tide · 12% tide</div>
         <p class="dock-disclaimer">Planning visualization only — not for navigation or race safety. Schedule subject to official race briefing.</p>
       </section>
       <div id="live-region" class="sr-only" aria-live="polite"></div>

@@ -14,7 +14,7 @@ body { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; }
 .leaflet-div-icon { background: transparent; border: 0; }
 
 .hud-panel, .legend-panel, .dock-inner { border: 1px solid rgba(255,255,255,.11); background: linear-gradient(145deg, rgba(8,22,35,.94), rgba(9,21,33,.84)); box-shadow: 0 16px 50px rgba(0,0,0,.34); backdrop-filter: blur(18px); }
-.hud-panel { border-radius: 18px; padding: 16px; }
+.hud-panel { --hud-top-offset: 8rem; --hud-bottom-gap: 7rem; border-radius: 18px; max-height: calc(100dvh - var(--hud-top-offset) - var(--hud-bottom-gap)); overflow-y: auto; overscroll-behavior: contain; padding: 16px; scrollbar-width: thin; }
 .legend-panel { border-radius: 14px; padding: 13px; width: 150px; }
 .eyebrow { color: #8ca7b8; font-size: 10px; font-weight: 800; letter-spacing: .15em; line-height: 1.1; text-transform: uppercase; }
 .metric-text { margin-top: 4px; font-family: 'DM Mono', ui-monospace, monospace; font-size: 17px; font-weight: 500; color: #f1f8f9; }
@@ -22,6 +22,9 @@ body { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; }
 .data-badge.live { border-color: rgba(134,239,172,.3); background: rgba(74,222,128,.1); color: #bbf7d0; }
 .data-badge.cached { border-color: rgba(196,181,253,.3); background: rgba(167,139,250,.1); color: #ddd6fe; }
 .strategy-box { border: 1px solid rgba(251,191,36,.16); border-radius: 12px; background: linear-gradient(120deg, rgba(217,119,6,.16), rgba(251,191,36,.04)); padding: 12px; }
+.safety-guidance-link { color: #bffaff; display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .04em; margin-top: 10px; text-decoration: none; }
+.safety-guidance-link:hover { color: #fff; text-decoration: underline; }
+.safety-guidance-link:focus-visible { outline: 2px solid #67e8f9; outline-offset: 3px; }
 .flow-readout { align-items: center; border: 1px solid rgba(196,181,253,.18); border-radius: 8px; background: rgba(196,181,253,.06); color: #b9c7d2; display: flex; justify-content: space-between; padding: 7px 8px; }
 .flow-readout-core { border-color: rgba(103,232,249,.25); background: rgba(34,211,238,.08); color: #b9f6fc; }
 .flow-readout strong { color: #e6fbfc; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; }
@@ -31,6 +34,12 @@ body { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; }
 .particle-swatch { align-items: center; background: rgba(34,211,238,.14); border: 1px solid rgba(103,232,249,.34); border-radius: 99px; color: #b5f8ff; display: inline-flex; font-weight: 700; height: 18px; justify-content: center; width: 26px; }
 
 .glass-button { align-items: center; border: 1px solid rgba(255,255,255,.13); border-radius: 10px; background: rgba(8,22,35,.86); color: #d6edf0; font-size: 12px; font-weight: 700; gap: 7px; padding: 10px 12px; backdrop-filter: blur(12px); }
+.day-switch { display: inline-flex; gap: 3px; padding: 3px; border: 1px solid rgba(255,255,255,.12); border-radius: 11px; background: rgba(8,22,35,.82); backdrop-filter: blur(12px); }
+.day-switch button { align-items: baseline; border: 0; border-radius: 8px; background: transparent; color: #a9bec9; cursor: pointer; display: inline-flex; font-size: 11px; font-weight: 800; gap: 5px; padding: 7px 9px; transition: background .2s, color .2s; }
+.day-switch button small { color: inherit; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; opacity: .72; }
+.day-switch button:hover { color: #dffcff; }
+.day-switch button.active { background: rgba(34,211,238,.16); box-shadow: inset 0 0 0 1px rgba(103,232,249,.18); color: #bffaff; }
+.day-switch button:focus-visible { outline: 2px solid #67e8f9; outline-offset: 2px; }
 .glass-button svg, .control-button svg { fill: none; height: 17px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; width: 17px; }
 .control-dock { padding: 0 16px calc(10px + env(safe-area-inset-bottom)); }
 .dock-inner { align-items: center; border-radius: 16px; display: flex; gap: 12px; padding: 10px 12px; }
@@ -39,6 +48,8 @@ body { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; }
 .control-button:focus-visible, .speed-button:focus-visible, .glass-button:focus-visible, input:focus-visible { outline: 2px solid #67e8f9; outline-offset: 2px; }
 .control-button-primary { background: #0e7490; border-color: #22d3ee; color: white; }
 .speed-button { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; width: 48px; }
+.zoom-controls { display: inline-flex; gap: 5px; }
+.map-zoom-button { font-family: 'DM Mono', monospace; font-size: 21px; font-weight: 500; width: 34px; }
 .timeline-wrap { min-width: 80px; position: relative; width: 100%; }
 #timeline { accent-color: #67e8f9; cursor: pointer; display: block; height: 28px; position: relative; width: 100%; z-index: 2; }
 #timeline::-webkit-slider-runnable-track { background: linear-gradient(90deg, #d88d47, #56c3bc 60%, #1e4770); border-radius: 99px; height: 5px; }
@@ -58,7 +69,8 @@ body { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; }
 @media (max-width: 639px) {
   .app-header { padding: 13px 14px; }
   .app-header h1 { font-size: 17px; }
-  .hud-panel { left: 14px; right: 14px; top: 86px; width: auto; }
+  .day-switch button { font-size: 10px; padding: 6px 8px; }
+  .hud-panel { --hud-top-offset: 126px; --hud-bottom-gap: 132px; left: 14px; right: 14px; top: 126px; width: auto; }
   .hud-panel .strategy-box { display: none; }
   .hud-panel .grid { gap-bottom: 0; padding-bottom: 0; }
   .control-dock { padding-left: 9px; padding-right: 9px; }

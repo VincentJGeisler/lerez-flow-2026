@@ -2,9 +2,8 @@
 (() => {
   'use strict';
 
-  const RACE_DATE = '2026-09-26';
-  const START_MINUTE = 300;
-  const END_MINUTE = 840;
+  const START_MINUTE = 360;
+  const END_MINUTE = 1080;
   // Río Lérez thalweg: used for tidal particles only, never as the swim route.
   const FLOW_AXIS = [
     [42.4344, -8.6366], [42.43455, -8.63595], [42.43505, -8.63490],
@@ -29,11 +28,22 @@
     [42.43431, -8.63552], SWIM_EXIT
   ];
   const ROUTE_TURN_INDEX = 9;
+  // The Sprint map in the official athlete guide shows a compact 750 m clockwise
+  // loop in the lower reach. This is a visual trace only; its final position is
+  // re-measured against the same water mask as the standard-distance course.
+  const SPRINT_TURN_AXIS_INDEX = 5;
+  const SPRINT_ROUTE = [
+    SWIM_START, [42.43462, -8.63570], [42.43485, -8.63485], [42.43545, -8.63395],
+    [42.43612, -8.63340], [42.43680, -8.63295], [42.43693, -8.63273],
+    [42.43650, -8.63295], [42.43592, -8.63345], [42.43520, -8.63425],
+    [42.43462, -8.63520], SWIM_EXIT
+  ];
+  const SPRINT_ROUTE_TURN_INDEX = 6;
   // Used only to distribute the visual flow lanes; the orthophoto-derived mask is
   // the authoritative visible-water boundary.
   const CHANNEL_HALF_WIDTHS = [42, 50, 58, 64, 68, 70, 68, 62, 70];
   const WATER_MASK_BOUNDS = { south: 42.431, west: -8.640, north: 42.443, east: -8.630 };
-  const FALLBACK_KEYFRAMES = [
+  const STANDARD_KEYFRAMES = [
     { minute: 300, tempC: 18.5, speed: 0.0, direction: 'slack', tidePercent: 0 },
     { minute: 315, tempC: 18.5, speed: 0.0, direction: 'slack', tidePercent: 0 }, // low tide
     { minute: 360, tempC: 18.2, speed: 0.18, direction: 'upstream', tidePercent: 12 },
@@ -48,24 +58,67 @@
     // Post-high-tide planning extension for late start windows. These are a
     // scenario continuation, not an official current forecast for the river.
     { minute: 720, tempC: 16.5, speed: 0.10, direction: 'downstream', tidePercent: 98 },
-    { minute: 750, tempC: 16.6, speed: 0.24, direction: 'downstream', tidePercent: 94 },
-    { minute: 780, tempC: 16.7, speed: 0.38, direction: 'downstream', tidePercent: 88 },
-    { minute: 810, tempC: 16.8, speed: 0.50, direction: 'downstream', tidePercent: 80 },
-    { minute: 840, tempC: 16.9, speed: 0.58, direction: 'downstream', tidePercent: 70 }
+    // The post-high-tide values are the current/tide scaffold. The scenario
+    // temperature model below derives the ebb mixing response from these stages.
+    { minute: 750, tempC: 16.5, speed: 0.24, direction: 'downstream', tidePercent: 94 },
+    { minute: 780, tempC: 16.5, speed: 0.38, direction: 'downstream', tidePercent: 88 },
+    { minute: 840, tempC: 16.5, speed: 0.58, direction: 'downstream', tidePercent: 70 },
+    { minute: 900, tempC: 16.5, speed: 0.76, direction: 'downstream', tidePercent: 54 },
+    { minute: 960, tempC: 16.5, speed: 0.88, direction: 'downstream', tidePercent: 38 },
+    { minute: 1020, tempC: 16.5, speed: 0.92, direction: 'downstream', tidePercent: 22 },
+    { minute: 1080, tempC: 16.5, speed: 0.76, direction: 'downstream', tidePercent: 10 }
   ];
-  const EVENTS = [
+  const STANDARD_EVENTS = [
     { minute: 315, label: 'Low tide · 05:15' },
     { minute: 420, label: 'AG start windows · 07:00' },
     { minute: 510, label: 'Mid-flood peak · 08:30' },
     { minute: 540, label: 'Elite women start · 09:00' },
     { minute: 690, label: 'High tide · 11:30' }
   ];
+  // This fallback makes the Sprint day usable before a short-range forecast is
+  // available. It is deliberately labelled as a planning scenario, not observed
+  // river data or an official tide prediction.
+  const SPRINT_KEYFRAMES = [
+    { minute: 360, tempC: 17.6, speed: 0.12, direction: 'upstream', tidePercent: 8 },
+    { minute: 420, tempC: 17.4, speed: 0.32, direction: 'upstream', tidePercent: 23 },
+    { minute: 480, tempC: 17.2, speed: 0.54, direction: 'upstream', tidePercent: 42 },
+    { minute: 540, tempC: 17.0, speed: 0.70, direction: 'upstream', tidePercent: 62 },
+    { minute: 600, tempC: 16.8, speed: 0.62, direction: 'upstream', tidePercent: 79 },
+    { minute: 660, tempC: 16.7, speed: 0.38, direction: 'upstream', tidePercent: 92 },
+    { minute: 720, tempC: 16.7, speed: 0.06, direction: 'upstream', tidePercent: 99 },
+    { minute: 750, tempC: 16.7, speed: 0.00, direction: 'slack', tidePercent: 100 },
+    { minute: 840, tempC: 16.7, speed: 0.30, direction: 'downstream', tidePercent: 91 },
+    { minute: 900, tempC: 16.7, speed: 0.46, direction: 'downstream', tidePercent: 78 },
+    { minute: 945, tempC: 16.7, speed: 0.58, direction: 'downstream', tidePercent: 66 },
+    { minute: 1020, tempC: 16.7, speed: 0.70, direction: 'downstream', tidePercent: 48 },
+    { minute: 1080, tempC: 16.7, speed: 0.76, direction: 'downstream', tidePercent: 31 }
+  ];
+  const SPRINT_EVENTS = [
+    { minute: 945, label: 'AG Sprint wave 1 · 15:45' },
+    { minute: 1020, label: 'AG Sprint waves · 17:00' },
+    { minute: 1080, label: 'AG Sprint wave · 18:00' }
+  ];
+  const RACE_DAYS = {
+    standard: {
+      id: 'standard', date: '2026-09-26', title: 'Standard distance',
+      dateLabel: 'Saturday, 26 September', courseLabel: '1,500 m · 1 lap',
+      routeType: 'standard', startMinute: 360, endMinute: 1080,
+      thermal: { riverTempC: 18.5, marineTempC: 16.5, exactUntilMinute: 690 },
+      frames: STANDARD_KEYFRAMES, events: STANDARD_EVENTS
+    },
+    sprint: {
+      id: 'sprint', date: '2026-09-24', title: 'Sprint distance',
+      dateLabel: 'Thursday, 24 September', courseLabel: '750 m · 1 lap',
+      routeType: 'sprint', startMinute: 720, endMinute: 1080,
+      thermal: { riverTempC: 18.5, marineTempC: 16.5, exactUntilMinute: 0 },
+      frames: SPRINT_KEYFRAMES, events: SPRINT_EVENTS
+    }
+  };
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const lerp = (from, to, amount) => from + (to - from) * amount;
   const toRadians = degrees => degrees * Math.PI / 180;
   const toDegrees = radians => radians * 180 / Math.PI;
-  const localDate = new Date(`${RACE_DATE}T14:00:00+02:00`);
 
   function timeLabel(minute) {
     const hour = Math.floor(minute / 60);
@@ -84,22 +137,41 @@
 
   /** Finds values between source points while retaining exact supplied values. */
   class TimelineModel {
-    constructor(frames) { this.frames = frames.slice().sort((a, b) => a.minute - b.minute); }
+    constructor(frames, day, useThermalScenario = false) {
+      this.frames = frames.slice().sort((a, b) => a.minute - b.minute);
+      this.startMinute = day?.startMinute ?? START_MINUTE; this.endMinute = day?.endMinute ?? END_MINUTE;
+      this.day = day; this.useThermalScenario = useThermalScenario;
+    }
+    scenarioTemperature(sample) {
+      if (!this.useThermalScenario || !this.day?.thermal || sample.minute <= this.day.thermal.exactUntilMinute) return sample.tempC;
+      const { riverTempC, marineTempC } = this.day.thermal;
+      const tide = clamp(sample.tidePercent / 100, 0, 1);
+      // Flood brings the cooler marine endmember upriver quickly. On ebb the
+      // water mass retains a cold-water memory, then progressively warms as the
+      // river fraction replaces it. This is a conservative mixing estimate—not
+      // a measured river-temperature forecast.
+      const riverFraction = sample.direction === 'downstream'
+        ? .02 + .96 * Math.pow(1 - tide, .72)
+        : sample.direction === 'slack' ? 0 : .10 + .80 * (1 - tide);
+      return marineTempC + (riverTempC - marineTempC) * clamp(riverFraction, 0, 1);
+    }
     sample(minute) {
-      const safeMinute = clamp(minute, START_MINUTE, END_MINUTE);
+      const safeMinute = clamp(minute, this.startMinute, this.endMinute);
       const nextIndex = this.frames.findIndex(frame => frame.minute >= safeMinute);
       if (nextIndex <= 0) return { ...this.frames[0] };
       const after = this.frames[nextIndex] || this.frames[this.frames.length - 1];
       const before = this.frames[nextIndex - 1];
       const progress = after.minute === before.minute ? 0 : (safeMinute - before.minute) / (after.minute - before.minute);
       const direction = before.direction === after.direction ? before.direction : (progress < .5 ? before.direction : after.direction);
-      return {
+      const sample = {
         minute: safeMinute,
         tempC: lerp(before.tempC, after.tempC, progress),
         speed: lerp(before.speed, after.speed, progress),
         tidePercent: lerp(before.tidePercent, after.tidePercent, progress),
         direction
       };
+      sample.tempC = this.scenarioTemperature(sample);
+      return sample;
     }
     tideStage(sample) {
       if (sample.speed < .05) return sample.tidePercent > 95 ? 'High water' : 'Low water';
@@ -109,8 +181,9 @@
 
   /** Loads a coarse regional model when the event lies inside its forecast horizon. */
   class MarineDataProvider {
-    constructor() { this.cacheKey = `lerez-flow-model-${RACE_DATE}`; }
+    constructor(day) { this.day = day; this.cacheKey = `lerez-flow-model-${day.date}`; }
     inForecastWindow() {
+      const localDate = new Date(`${this.day.date}T${String(Math.floor(this.day.endMinute / 60)).padStart(2, '0')}:00:00+02:00`);
       const daysAway = (localDate - new Date()) / 86400000;
       return daysAway >= -1 && daysAway <= 8;
     }
@@ -123,7 +196,7 @@
     async load() {
       const cached = this.cache();
       if (cached) return { frames: cached.frames, mode: 'cached', updated: cached.updated };
-      if (!this.inForecastWindow()) return { frames: FALLBACK_KEYFRAMES, mode: 'simulated' };
+      if (!this.inForecastWindow()) return { frames: this.day.frames, mode: 'simulated' };
       try {
         const controller = new AbortController();
         const timer = window.setTimeout(() => controller.abort(), 8000);
@@ -131,7 +204,7 @@
           latitude: '42.4367', longitude: '-8.6304',
           hourly: 'sea_surface_temperature,ocean_current_velocity,ocean_current_direction,sea_level_height_msl',
           timezone: 'Europe/Madrid', temperature_unit: 'celsius', wind_speed_unit: 'ms',
-          cell_selection: 'sea', start_date: RACE_DATE, end_date: RACE_DATE
+          cell_selection: 'sea', start_date: this.day.date, end_date: this.day.date
         });
         const response = await fetch(`https://marine-api.open-meteo.com/v1/marine?${query}`, { signal: controller.signal });
         window.clearTimeout(timer);
@@ -142,7 +215,7 @@
         return { frames, mode: 'live', updated: saved.updated };
       } catch (error) {
         console.info('Live marine model unavailable; using supplied race scenario.', error.message);
-        return { frames: FALLBACK_KEYFRAMES, mode: 'simulated' };
+        return { frames: this.day.frames, mode: 'simulated' };
       }
     }
     parse(payload) {
@@ -152,9 +225,10 @@
       if (fields.some(field => hourly[field].length !== hourly.time.length)) throw new Error('Mismatched model response');
       const bearing = riverBearing();
       const rows = hourly.time.map((time, index) => ({ time, index })).filter(row => {
-        const hour = Number(row.time.slice(11, 13)); return row.time.startsWith(RACE_DATE) && hour >= 5 && hour <= 14;
+        const minute = Number(row.time.slice(11, 13)) * 60 + Number(row.time.slice(14, 16));
+        return row.time.startsWith(this.day.date) && minute >= this.day.startMinute && minute <= this.day.endMinute;
       });
-      if (rows.length < 8) throw new Error('Model does not cover the race morning');
+      if (rows.length < 8) throw new Error('Model does not cover the requested race-day window');
       const levels = rows.map(row => hourly.sea_level_height_msl[row.index]);
       if (levels.some(value => !Number.isFinite(value))) throw new Error('Invalid sea-level model data');
       const minLevel = Math.min(...levels); const maxLevel = Math.max(...levels); const span = Math.max(.001, maxLevel - minLevel);
@@ -400,7 +474,8 @@
   }
 
   class MapView {
-    constructor() {
+    constructor(day) {
+      this.day = day;
       this.map = L.map('map', { zoomControl: false, preferCanvas: true, minZoom: 14, maxZoom: 18, maxBounds: [[42.428, -8.65], [42.448, -8.61]] });
       this.map.createPane('temperaturePane').style.zIndex = 320;
       this.map.createPane('coursePane').style.zIndex = 430;
@@ -409,7 +484,6 @@
         subdomains: 'abc', maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(this.map);
-      L.control.zoom({ position: 'bottomright' }).addTo(this.map);
       this.drawCourse(); // Temporary route while the orthophoto mask loads.
       this.waterMask = new RiverWaterMask(this.map, () => {
         // The course uses this exact same water test as the thermal and flow layers.
@@ -419,12 +493,19 @@
       });
       this.temperature = new TemperatureLayer(this.waterMask).addTo(this.map);
       this.particles = new CurrentParticleLayer(this.waterMask).addTo(this.map);
-      this.map.fitBounds(L.latLngBounds(SWIM_ROUTE).pad(.18), { paddingTopLeft: [20, 105], paddingBottomRight: [20, 160] });
+      this.recenter();
       // Re-measure after a viewport transform. Without this, the first render can
       // use Leaflet's pre-layout pixel origin until the user manually pans/zooms.
       this.map.on('moveend zoomend resize', () => this.scheduleConstrainedCourse());
       window.addEventListener('resize', () => this.map.invalidateSize({ pan: false }));
       requestAnimationFrame(() => requestAnimationFrame(() => this.scheduleConstrainedCourse()));
+    }
+    referenceRoute() { return this.day.routeType === 'sprint' ? SPRINT_ROUTE : SWIM_ROUTE; }
+    setDay(day) {
+      this.day = day;
+      this.drawCourse();
+      this.recenter();
+      this.scheduleConstrainedCourse();
     }
     scheduleConstrainedCourse() {
       if (!this.waterMask?.ready) return;
@@ -458,16 +539,20 @@
         const inset = Math.max(pixelsPerMetre * 5, bank * (side < 0 ? .31 : .20));
         return this.map.containerPointToLatLng({ x: center.x + normal.x * inset, y: center.y + normal.y * inset });
       };
-      const outbound = [SWIM_START, ...FLOW_AXIS.slice(1).map((_, index) => channelPoint(index + 1, -1))];
-      const turn = L.latLng(FLOW_AXIS.at(-1));
-      const returnLeg = [...FLOW_AXIS.slice(1).map((_, index) => channelPoint(index + 1, 1)).reverse(), SWIM_EXIT];
+      const turnIndex = this.day.routeType === 'sprint' ? SPRINT_TURN_AXIS_INDEX : FLOW_AXIS.length - 1;
+      const routeIndices = Array.from({ length: turnIndex }, (_, index) => index + 1);
+      const outbound = [SWIM_START, ...routeIndices.map(index => channelPoint(index, -1))];
+      const turn = L.latLng(FLOW_AXIS[turnIndex]);
+      const returnLeg = [...routeIndices.map(index => channelPoint(index, 1)).reverse(), SWIM_EXIT];
       return { outbound, turn, returnLeg };
     }
     drawCourse(constrained = null) {
       this.courseLayers?.forEach(layer => this.map.removeLayer(layer));
-      const outbound = constrained?.outbound ?? SWIM_ROUTE.slice(0, ROUTE_TURN_INDEX + 1);
-      const turn = constrained?.turn ?? SWIM_ROUTE[ROUTE_TURN_INDEX];
-      const returnLeg = constrained?.returnLeg ?? SWIM_ROUTE.slice(ROUTE_TURN_INDEX);
+      const fallback = this.referenceRoute();
+      const fallbackTurnIndex = this.day.routeType === 'sprint' ? SPRINT_ROUTE_TURN_INDEX : ROUTE_TURN_INDEX;
+      const outbound = constrained?.outbound ?? fallback.slice(0, fallbackTurnIndex + 1);
+      const turn = constrained?.turn ?? fallback[fallbackTurnIndex];
+      const returnLeg = constrained?.returnLeg ?? fallback.slice(fallbackTurnIndex);
       const route = [...outbound, ...returnLeg];
       this.courseLayers = [
         L.polyline(route, { pane: 'coursePane', color: '#553da1', opacity: .44, weight: 12, lineCap: 'round', lineJoin: 'round' }).addTo(this.map),
@@ -476,7 +561,7 @@
       ];
       this.courseLayers.push(
         ...this.marker(SWIM_START, 'Swim start · pontoon', 'course-dot', [42.43479, -8.63634]),
-        ...this.marker(turn, 'Clockwise turn', 'course-dot turn-dot'),
+        ...this.marker(turn, this.day.routeType === 'sprint' ? 'Buoy turn' : 'Clockwise turn', 'course-dot turn-dot'),
         ...this.marker(SWIM_EXIT, 'Swim exit · stairs', 'course-dot turn-dot', [42.43400, -8.63560])
       );
     }
@@ -487,16 +572,24 @@
       return [marker, labelMarker];
     }
     update(sample) { this.temperature.setSample(sample); this.particles.setSample(sample); }
-    recenter() { this.map.fitBounds(L.latLngBounds(SWIM_ROUTE).pad(.18), { paddingTopLeft: [20, 105], paddingBottomRight: [20, 160] }); }
+    recenter() { this.map.fitBounds(L.latLngBounds(this.referenceRoute()).pad(.18), { paddingTopLeft: [20, 105], paddingBottomRight: [20, 160] }); }
+    zoomIn() { this.map.zoomIn(); }
+    zoomOut() { this.map.zoomOut(); }
   }
 
   class TelemetryView {
-    constructor() {
+    constructor(day) {
+      this.day = day;
       this.el = Object.fromEntries(['hud-time', 'tide-stage', 'tide-detail', 'water-temp', 'water-temp-f', 'current-speed', 'current-direction', 'core-flow', 'edge-flow', 'strategy-text', 'data-badge', 'event-label', 'live-region'].map(id => [id, document.getElementById(id)]));
-      this.ticks = document.getElementById('event-ticks'); this.addTicks();
+      this.ticks = document.getElementById('event-ticks'); this.setDay(day);
     }
-    addTicks() {
-      EVENTS.forEach(event => { const tick = document.createElement('i'); tick.className = 'event-tick'; tick.dataset.minute = event.minute; tick.style.left = `${((event.minute - START_MINUTE) / (END_MINUTE - START_MINUTE)) * 100}%`; this.ticks.appendChild(tick); });
+    setDay(day) {
+      this.day = day;
+      this.ticks.replaceChildren();
+      day.events.filter(event => event.minute >= day.startMinute && event.minute <= day.endMinute).forEach(event => {
+        const tick = document.createElement('i'); tick.className = 'event-tick'; tick.dataset.minute = event.minute;
+        tick.style.left = `${((event.minute - day.startMinute) / (day.endMinute - day.startMinute)) * 100}%`; this.ticks.appendChild(tick);
+      });
     }
     source(result) {
       const badge = this.el['data-badge'];
@@ -504,15 +597,18 @@
       badge.textContent = 'Hydrographic data prediction';
       badge.title = result.updated
         ? `Open-Meteo Marine model updated ${new Date(result.updated).toLocaleString()}`
-        : 'Race-day planning scenario; not an official tide prediction.';
+        : 'Race-day planning scenario. Ebb temperatures use a conservative tidal-mixing estimate; not an official tide prediction.';
     }
     strategy(sample) {
-      if (sample.speed < .05) return sample.tidePercent > 95 ? 'High water and slack. Reset your pacing expectations, choose a clean sight line, and prepare for changing conditions.' : 'Slack water. Use the cleanest line and settle into rhythm before the flood builds.';
-      if (sample.direction === 'downstream') return 'Ebb tide is underway. Expect the current to favour the downstream leg and adjust sighting and pacing for the return.';
-      if (sample.minute < 420) return 'The flood is building. The upstream leg gains an assist; save enough to stay composed against the head-current return.';
-      if (sample.minute < 510) return 'High buoyancy advantage. Upstream leg will feel fast. Prepare for a hard head-current fight on the downstream return leg.';
-      if (sample.minute < 555) return 'Peak flood: the course has its strongest split. Do not overpace with the upstream assist; control effort for the return.';
-      return 'Flood is easing. The upstream assist is fading, but keep your exit line deliberate as the channel approaches slack.';
+      if (sample.speed >= .55) return 'High-flow caution — not a race-safety clearance. River flow can vary sharply across the channel and around structures. Use only the clear, buoyed course line; do not chase the bank near bridges, shallow water, obstacles, or eddies. Where the buoyed line is clear and officials permit it, slower near-bank water may reduce exposure to the faster mid-channel current.';
+      let advice;
+      if (sample.speed < .05) advice = sample.tidePercent > 95 ? 'High water and slack. Reset your pacing expectations, choose a clean sight line, and prepare for changing conditions.' : 'Slack water. Use the cleanest line and settle into rhythm before the flood builds.';
+      else if (sample.direction === 'downstream') advice = 'Ebb tide is underway. Expect the current to favour the downstream leg and adjust sighting and pacing for the return.';
+      else if (sample.minute < 420) advice = 'The flood is building. The upstream leg gains an assist; save enough to stay composed against the head-current return.';
+      else if (sample.minute < 510) advice = 'High buoyancy advantage. Upstream leg will feel fast. Prepare for a hard head-current fight on the downstream return leg.';
+      else if (sample.minute < 555) advice = 'Peak flood: the course has its strongest split. Do not overpace with the upstream assist; control effort for the return.';
+      else advice = 'Flood is easing. The upstream assist is fading, but keep your exit line deliberate as the channel approaches slack.';
+      return advice;
     }
     update(sample, model) {
       const tide = model.tideStage(sample); const tempF = sample.tempC * 9 / 5 + 32;
@@ -524,7 +620,7 @@
       this.el['current-direction'].textContent = direction; this.el['strategy-text'].textContent = this.strategy(sample);
       this.el['core-flow'].textContent = `${(sample.speed * 1.18).toFixed(1)} m/s`;
       this.el['edge-flow'].textContent = `${(sample.speed * .57).toFixed(1)} m/s`;
-      const closest = EVENTS.find(event => Math.abs(event.minute - sample.minute) <= 5);
+      const closest = this.day.events.find(event => Math.abs(event.minute - sample.minute) <= 5);
       this.el['event-label'].textContent = closest ? closest.label : `${tide} · ${Math.round(sample.tidePercent)}% tide`;
       this.ticks.querySelectorAll('.event-tick').forEach(tick => tick.classList.toggle('active', Math.abs(Number(tick.dataset.minute) - sample.minute) <= 5));
     }
@@ -533,7 +629,8 @@
 
   class PlaybackController {
     constructor(onChange) {
-      this.minute = START_MINUTE; this.speed = .5; this.playing = false; this.onChange = onChange; this.last = 0; this.frame = 0;
+      this.startMinute = START_MINUTE; this.endMinute = END_MINUTE;
+      this.minute = this.startMinute; this.speed = .5; this.playing = false; this.onChange = onChange; this.last = 0; this.frame = 0;
       this.slider = document.getElementById('timeline'); this.speedButton = document.getElementById('speed-button');
       document.getElementById('play-button').addEventListener('click', () => this.play());
       document.getElementById('pause-button').addEventListener('click', () => this.pause());
@@ -541,10 +638,17 @@
       this.speedButton.addEventListener('click', () => this.cycleSpeed());
       this.slider.addEventListener('input', () => { this.minute = Number(this.slider.value); this.emit(); });
     }
+    setDay(day) {
+      this.startMinute = day.startMinute; this.endMinute = day.endMinute;
+      this.slider.min = this.startMinute; this.slider.max = this.endMinute;
+      this.slider.setAttribute('aria-label', `Race-day timeline from ${timeLabel(this.startMinute)} to ${timeLabel(this.endMinute)}`);
+      document.getElementById('timeline-start').textContent = timeLabel(this.startMinute).replace(' AM', '').replace(' PM', '');
+      document.getElementById('timeline-end').textContent = timeLabel(this.endMinute).replace(' AM', '').replace(' PM', '');
+    }
     emit(announce = false) { this.slider.value = this.minute; this.onChange(this.minute, announce); }
-    play() { if (this.minute >= END_MINUTE) this.minute = START_MINUTE; this.playing = true; this.last = performance.now(); this.frame = requestAnimationFrame(time => this.tick(time)); }
+    play() { if (this.minute >= this.endMinute) this.minute = this.startMinute; this.playing = true; this.last = performance.now(); this.frame = requestAnimationFrame(time => this.tick(time)); }
     pause() { this.playing = false; cancelAnimationFrame(this.frame); }
-    reset() { this.pause(); this.minute = START_MINUTE; this.emit(true); }
+    reset() { this.pause(); this.minute = this.startMinute; this.emit(true); }
     cycleSpeed() {
       const speeds = [.25, .5, 1, 2, 5]; const current = speeds.indexOf(this.speed);
       this.speed = speeds[(current + 1) % speeds.length];
@@ -553,19 +657,39 @@
     tick(now) {
       if (!this.playing) return;
       const seconds = Math.min((now - this.last) / 1000, .2); this.last = now;
-      this.minute = Math.min(END_MINUTE, this.minute + seconds * 10 * this.speed); this.emit();
-      if (this.minute < END_MINUTE) this.frame = requestAnimationFrame(time => this.tick(time)); else this.pause();
+      this.minute = Math.min(this.endMinute, this.minute + seconds * 10 * this.speed); this.emit();
+      if (this.minute < this.endMinute) this.frame = requestAnimationFrame(time => this.tick(time)); else this.pause();
     }
   }
 
   class App {
     async init() {
-      this.model = new TimelineModel(FALLBACK_KEYFRAMES); this.map = new MapView(); this.hud = new TelemetryView();
+      const requestedDay = new URLSearchParams(window.location.search).get('day');
+      this.day = RACE_DAYS[requestedDay] || RACE_DAYS.standard;
+      this.model = new TimelineModel(this.day.frames, this.day, true); this.map = new MapView(this.day); this.hud = new TelemetryView(this.day);
       this.playback = new PlaybackController((minute, announce) => this.render(minute, announce));
       document.getElementById('recenter-button').addEventListener('click', () => this.map.recenter());
-      this.render(START_MINUTE);
-      const result = await new MarineDataProvider().load();
-      this.model = new TimelineModel(result.frames); this.hud.source(result); this.render(this.playback.minute);
+      document.getElementById('zoom-in-button').addEventListener('click', () => this.map.zoomIn());
+      document.getElementById('zoom-out-button').addEventListener('click', () => this.map.zoomOut());
+      document.querySelectorAll('[data-race-day]').forEach(button => button.addEventListener('click', () => this.selectDay(button.dataset.raceDay)));
+      await this.selectDay(this.day.id);
+    }
+    async selectDay(dayId) {
+      const day = RACE_DAYS[dayId];
+      if (!day) return;
+      const request = (this.requestId || 0) + 1; this.requestId = request;
+      this.playback?.pause(); this.day = day; this.model = new TimelineModel(day.frames, day, true);
+      this.map?.setDay(day); this.hud?.setDay(day);
+      document.getElementById('event-date').textContent = `World Triathlon Championships · ${day.dateLabel}`;
+      document.getElementById('event-context').textContent = `${day.title} · ${day.courseLabel}`;
+      document.querySelectorAll('[data-race-day]').forEach(button => {
+        const selected = button.dataset.raceDay === day.id;
+        button.classList.toggle('active', selected); button.setAttribute('aria-pressed', String(selected));
+      });
+      this.playback.setDay(day); this.playback.reset();
+      const result = await new MarineDataProvider(day).load();
+      if (request !== this.requestId) return;
+      this.model = new TimelineModel(result.frames, day, result.mode === 'simulated'); this.hud.source(result); this.render(this.playback.minute);
     }
     render(minute, announce = false) { const sample = this.model.sample(minute); this.map.update(sample); this.hud.update(sample, this.model); if (announce) this.hud.announce(sample); }
   }
