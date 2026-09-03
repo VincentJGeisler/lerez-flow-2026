@@ -49,15 +49,27 @@ RNLI, GOV.UK, and Met Office / RLSS guidance.
 
 | Data | Source | How this app uses it |
 | --- | --- | --- |
-| Race-day baseline | Supplied event-planning keyframes | Deterministic fallback outside the live-model window. |
-| Astronomical tide | [Instituto Hidrográfico de la Marina — 2026 Marín table](https://armada.defensa.gob.es/ihm/Documentacion/Mareas/2026/Marin1.pdf) | Official reference for checking high/low tide times; it is not queried by the browser. |
+| Pontevedra tide timing | [Published Pontevedra tide prediction](https://www.tide-forecast.com/tide/Pontevedra/tide-times) | Pinned high/low-water extrema for each race day; drives stage, flood/ebb phase, and the thermal-mixing scenario. |
+| Regional official check | [Instituto Hidrográfico de la Marina — 2026 Marín table](https://armada.defensa.gob.es/ihm/Documentacion/Mareas/2026/Marin3.pdf) | The nearest official reference station. Its timings differ from Pontevedra because it is farther down the ría; it is not substituted for the race-reach prediction. |
 | Short-range Spanish coastal forecast | [Puertos del Estado Oceanography](https://www.puertos.es/en/services/oceanography) | Official operational reference for sea level, currents, and temperature. |
-| Browser-loaded model | [Open-Meteo Marine](https://open-meteo.com/en/docs/marine-weather-api) | Requested only when race day is inside its eight-day forecast horizon. |
+| Browser-loaded temperature model | [Open-Meteo Marine](https://open-meteo.com/en/docs/marine-weather-api) | Requested only when race day is inside its eight-day forecast horizon; it can supplement temperature, never replace the tide schedule. |
 
-The supplied Standard-distance keyframes are the deterministic planning fallback
-and are kept exactly at their specified timestamps. The remaining Standard and
-all Sprint values extend the visualisation to 18:00 as explicit planning
-scenarios; they are not an official river-current forecast.
+The application pins its tide timing to the following published **Pontevedra**
+predictions (CEST), rather than the original illustrative keyframes:
+
+| Race day | High water | Low water | High water | Low water |
+| --- | --- | --- | --- | --- |
+| Sprint — Thu 24 Sep | 03:19 | 09:17 | **15:29** | 21:43 |
+| Standard — Sat 26 Sep | 04:23 | 10:24 | **16:35** | 22:46 |
+
+That means the Sprint 15:45 wave is only 16 minutes after predicted high water,
+so the visual current starts close to slack rather than showing a 0.5 m/s ebb.
+Tide height/phase is the data-led part of the display. There is currently no
+publicly verified, course-reach current gauge or validated hydraulic model for
+the Río Lérez swim channel, so every numeric current speed is deliberately
+labelled **Current scenario**. It is a smooth visual estimate that peaks
+mid-phase and reaches zero at the published high/low-water turning points; it
+is not observed current data, an official forecast, or a race-safety clearance.
 
 When that scenario passes high water, its temperature uses a simple two-endmember
 tidal-mixing estimate: cooler marine water enters quickly during flood; after the
@@ -69,11 +81,11 @@ When a current Open-Meteo response is available, its sea-surface-temperature
 values are shown directly and this fallback mixing estimate is not applied.
 
 When either selected race day is within Open-Meteo Marine’s current eight-day
-forecast horizon, the browser requests its regional model for sea-surface
-temperature, current velocity/direction, and sea-level height, then caches a
-valid result separately for that date. The HUD identifies this data area as
-**Hydrographic data prediction** and its tooltip identifies whether the input
-is a current model or the planning scenario.
+forecast horizon, the browser requests and caches its regional
+sea-surface-temperature field only. The coarser ocean current and sea-level
+fields are intentionally not used to overwrite the pinned Pontevedra tide
+schedule or represent current in the narrow river reach. The HUD identifies
+whether that temperature model is active.
 
 Open-Meteo’s marine grid is coarse relative to the Río Lérez and must be treated as planning context, never a navigation, safety, or official race decision source. See [Open-Meteo Marine Weather API](https://open-meteo.com/en/docs/marine-weather-api) for model details and attribution.
 

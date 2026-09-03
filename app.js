@@ -43,82 +43,54 @@
   // the authoritative visible-water boundary.
   const CHANNEL_HALF_WIDTHS = [42, 50, 58, 64, 68, 70, 68, 62, 70];
   const WATER_MASK_BOUNDS = { south: 42.431, west: -8.640, north: 42.443, east: -8.630 };
-  const STANDARD_KEYFRAMES = [
-    { minute: 300, tempC: 18.5, speed: 0.0, direction: 'slack', tidePercent: 0 },
-    { minute: 315, tempC: 18.5, speed: 0.0, direction: 'slack', tidePercent: 0 }, // low tide
-    { minute: 360, tempC: 18.2, speed: 0.18, direction: 'upstream', tidePercent: 12 },
-    { minute: 420, tempC: 17.8, speed: 0.4, direction: 'upstream', tidePercent: 28 }, // AG windows
-    { minute: 450, tempC: 17.4, speed: 0.6, direction: 'upstream', tidePercent: 52 },
-    { minute: 480, tempC: 17.1, speed: 0.75, direction: 'upstream', tidePercent: 70 },
-    { minute: 510, tempC: 17.0, speed: 0.8, direction: 'upstream', tidePercent: 82 }, // flood peak
-    { minute: 540, tempC: 16.7, speed: 0.7, direction: 'upstream', tidePercent: 88 }, // elite women
-    { minute: 600, tempC: 16.6, speed: 0.45, direction: 'upstream', tidePercent: 95 },
-    { minute: 660, tempC: 16.5, speed: 0.15, direction: 'upstream', tidePercent: 99 },
-    { minute: 690, tempC: 16.5, speed: 0.0, direction: 'slack', tidePercent: 100 }, // high tide
-    // Post-high-tide planning extension for late start windows. These are a
-    // scenario continuation, not an official current forecast for the river.
-    { minute: 720, tempC: 16.5, speed: 0.10, direction: 'downstream', tidePercent: 98 },
-    // The post-high-tide values are the current/tide scaffold. The scenario
-    // temperature model below derives the ebb mixing response from these stages.
-    { minute: 750, tempC: 16.5, speed: 0.24, direction: 'downstream', tidePercent: 94 },
-    { minute: 780, tempC: 16.5, speed: 0.38, direction: 'downstream', tidePercent: 88 },
-    { minute: 840, tempC: 16.5, speed: 0.58, direction: 'downstream', tidePercent: 70 },
-    { minute: 900, tempC: 16.5, speed: 0.76, direction: 'downstream', tidePercent: 54 },
-    { minute: 960, tempC: 16.5, speed: 0.88, direction: 'downstream', tidePercent: 38 },
-    { minute: 1020, tempC: 16.5, speed: 0.92, direction: 'downstream', tidePercent: 22 },
-    { minute: 1080, tempC: 16.5, speed: 0.76, direction: 'downstream', tidePercent: 10 }
-  ];
   const STANDARD_EVENTS = [
-    { minute: 315, label: 'Low tide · 05:15' },
+    { minute: 624, label: 'Low water · 10:24' },
     { minute: 420, label: 'AG start windows · 07:00' },
-    { minute: 510, label: 'Mid-flood peak · 08:30' },
     { minute: 540, label: 'Elite women start · 09:00' },
-    { minute: 690, label: 'High tide · 11:30' }
-  ];
-  // This fallback makes the Sprint day usable before a short-range forecast is
-  // available. It is deliberately labelled as a planning scenario, not observed
-  // river data or an official tide prediction.
-  const SPRINT_KEYFRAMES = [
-    { minute: 360, tempC: 17.6, speed: 0.12, direction: 'upstream', tidePercent: 8 },
-    { minute: 420, tempC: 17.4, speed: 0.32, direction: 'upstream', tidePercent: 23 },
-    { minute: 480, tempC: 17.2, speed: 0.54, direction: 'upstream', tidePercent: 42 },
-    { minute: 540, tempC: 17.0, speed: 0.70, direction: 'upstream', tidePercent: 62 },
-    { minute: 600, tempC: 16.8, speed: 0.62, direction: 'upstream', tidePercent: 79 },
-    { minute: 660, tempC: 16.7, speed: 0.38, direction: 'upstream', tidePercent: 92 },
-    { minute: 720, tempC: 16.7, speed: 0.06, direction: 'upstream', tidePercent: 99 },
-    { minute: 750, tempC: 16.7, speed: 0.00, direction: 'slack', tidePercent: 100 },
-    { minute: 840, tempC: 16.7, speed: 0.30, direction: 'downstream', tidePercent: 91 },
-    { minute: 900, tempC: 16.7, speed: 0.46, direction: 'downstream', tidePercent: 78 },
-    { minute: 945, tempC: 16.7, speed: 0.58, direction: 'downstream', tidePercent: 66 },
-    { minute: 1020, tempC: 16.7, speed: 0.70, direction: 'downstream', tidePercent: 48 },
-    { minute: 1080, tempC: 16.7, speed: 0.76, direction: 'downstream', tidePercent: 31 }
+    { minute: 995, label: 'High water · 16:35' }
   ];
   const SPRINT_EVENTS = [
+    { minute: 929, label: 'High water · 15:29' },
     { minute: 945, label: 'AG Sprint wave 1 · 15:45' },
     { minute: 1020, label: 'AG Sprint waves · 17:00' },
     { minute: 1080, label: 'AG Sprint wave · 18:00' }
   ];
+  // Published Pontevedra tide extrema, CEST (UTC+2).  Tide height is anchored
+  // to these events. Velocity is deliberately a separately labelled planning
+  // scenario: no public, course-reach current gauge/model was found.
+  const TIDE_PREDICTIONS = {
+    standard: [
+      { minute: 263, percent: 100 }, // 04:23 high water
+      { minute: 624, percent: 0 },   // 10:24 low water
+      { minute: 995, percent: 100 }, // 16:35 high water
+      { minute: 1366, percent: 0 }   // 22:46 low water
+    ],
+    sprint: [
+      { minute: 199, percent: 100 }, // 03:19 high water
+      { minute: 557, percent: 0 },   // 09:17 low water
+      { minute: 929, percent: 100 }, // 15:29 high water
+      { minute: 1303, percent: 0 }   // 21:43 low water
+    ]
+  };
   const RACE_DAYS = {
     standard: {
       id: 'standard', date: '2026-09-26', title: 'Standard distance',
       dateLabel: 'Saturday, 26 September', courseLabel: '1,500 m · 1 lap',
       routeType: 'standard', startMinute: 360, endMinute: 1080,
-      thermal: { riverTempC: 18.5, marineTempC: 16.5, exactUntilMinute: 690 },
-      frames: STANDARD_KEYFRAMES, events: STANDARD_EVENTS
+      thermal: { riverTempC: 18.5, marineTempC: 16.5, exactUntilMinute: 0 },
+      tideEvents: TIDE_PREDICTIONS.standard, scenarioPeakSpeed: .8, events: STANDARD_EVENTS
     },
     sprint: {
       id: 'sprint', date: '2026-09-24', title: 'Sprint distance',
       dateLabel: 'Thursday, 24 September', courseLabel: '750 m · 1 lap',
       routeType: 'sprint', startMinute: 720, endMinute: 1080,
       thermal: { riverTempC: 18.5, marineTempC: 16.5, exactUntilMinute: 0 },
-      frames: SPRINT_KEYFRAMES, events: SPRINT_EVENTS
+      tideEvents: TIDE_PREDICTIONS.sprint, scenarioPeakSpeed: .8, events: SPRINT_EVENTS
     }
   };
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const lerp = (from, to, amount) => from + (to - from) * amount;
-  const toRadians = degrees => degrees * Math.PI / 180;
-  const toDegrees = radians => radians * 180 / Math.PI;
 
   function timeLabel(minute) {
     const hour = Math.floor(minute / 60);
@@ -128,12 +100,37 @@
     return `${h}:${String(min).padStart(2, '0')} ${suffix}`;
   }
 
-  function riverBearing() {
-    const a = FLOW_AXIS[0]; const b = FLOW_AXIS[FLOW_AXIS.length - 1];
-    const y = Math.sin(toRadians(b[1] - a[1])) * Math.cos(toRadians(b[0]));
-    const x = Math.cos(toRadians(a[0])) * Math.sin(toRadians(b[0])) - Math.sin(toRadians(a[0])) * Math.cos(toRadians(b[0])) * Math.cos(toRadians(b[1] - a[1]));
-    return (toDegrees(Math.atan2(y, x)) + 360) % 360;
+  /**
+   * Creates a smooth, tide-height-led planning timeline from the published
+   * Pontevedra high/low-water times.  It does not claim to measure velocity:
+   * the speed is only a visual current scenario that reaches its maximum at
+   * mid-phase and is zero at the published turning points.
+   */
+  function buildTideScenarioFrames(day) {
+    const extrema = day.tideEvents;
+    const minutes = new Set([day.startMinute, day.endMinute, ...extrema.map(event => event.minute)]);
+    for (let minute = day.startMinute; minute <= day.endMinute; minute += 5) minutes.add(minute);
+    return [...minutes].sort((a, b) => a - b).map(minute => {
+      const afterIndex = extrema.findIndex(event => event.minute >= minute);
+      const after = extrema[afterIndex < 0 ? extrema.length - 1 : afterIndex];
+      const before = extrema[Math.max(0, afterIndex - 1)];
+      const span = Math.max(1, after.minute - before.minute);
+      const phase = clamp((minute - before.minute) / span, 0, 1);
+      const eased = .5 - .5 * Math.cos(Math.PI * phase);
+      const rising = after.percent > before.percent;
+      const speed = day.scenarioPeakSpeed * Math.sin(Math.PI * phase);
+      return {
+        minute,
+        tempC: day.thermal.marineTempC,
+        // Avoid presenting a directional current at the predicted turning point.
+        speed: speed < .025 ? 0 : speed,
+        direction: speed < .025 ? 'slack' : rising ? 'upstream' : 'downstream',
+        tidePercent: lerp(before.percent, after.percent, eased)
+      };
+    });
   }
+
+  Object.values(RACE_DAYS).forEach(day => { day.frames = buildTideScenarioFrames(day); });
 
   /** Finds values between source points while retaining exact supplied values. */
   class TimelineModel {
@@ -152,7 +149,9 @@
       // a measured river-temperature forecast.
       const riverFraction = sample.direction === 'downstream'
         ? .02 + .96 * Math.pow(1 - tide, .72)
-        : sample.direction === 'slack' ? 0 : .10 + .80 * (1 - tide);
+        : sample.direction === 'slack'
+          ? (tide < .05 ? 1 : 0)
+          : .10 + .80 * (1 - tide);
       return marineTempC + (riverTempC - marineTempC) * clamp(riverFraction, 0, 1);
     }
     sample(minute) {
@@ -179,9 +178,14 @@
     }
   }
 
-  /** Loads a coarse regional model when the event lies inside its forecast horizon. */
+  /**
+   * Supplements the pinned tide timeline with temperature only when a regional
+   * marine model is available. Its coarse ocean-current field must never
+   * overwrite the published Pontevedra high/low-water times or masquerade as a
+   * measurement in this constricted river reach.
+   */
   class MarineDataProvider {
-    constructor(day) { this.day = day; this.cacheKey = `lerez-flow-model-${day.date}`; }
+    constructor(day) { this.day = day; this.cacheKey = `lerez-flow-temperature-v2-${day.date}`; }
     inForecastWindow() {
       const localDate = new Date(`${this.day.date}T${String(Math.floor(this.day.endMinute / 60)).padStart(2, '0')}:00:00+02:00`);
       const daysAway = (localDate - new Date()) / 86400000;
@@ -190,61 +194,63 @@
     cache() {
       try {
         const saved = JSON.parse(localStorage.getItem(this.cacheKey));
-        return saved && Array.isArray(saved.frames) && saved.frames.length >= 8 ? saved : null;
+        return saved && Array.isArray(saved.temperatures) && saved.temperatures.length >= 8 ? saved : null;
       } catch { return null; }
     }
     async load() {
       const cached = this.cache();
-      if (cached) return { frames: cached.frames, mode: 'cached', updated: cached.updated };
-      if (!this.inForecastWindow()) return { frames: this.day.frames, mode: 'simulated' };
+      if (cached) return { frames: this.withTemperatures(cached.temperatures), mode: 'temperature-model', updated: cached.updated };
+      if (!this.inForecastWindow()) return { frames: this.day.frames, mode: 'published-tide' };
       try {
         const controller = new AbortController();
         const timer = window.setTimeout(() => controller.abort(), 8000);
         const query = new URLSearchParams({
           latitude: '42.4367', longitude: '-8.6304',
-          hourly: 'sea_surface_temperature,ocean_current_velocity,ocean_current_direction,sea_level_height_msl',
+          hourly: 'sea_surface_temperature',
           timezone: 'Europe/Madrid', temperature_unit: 'celsius', wind_speed_unit: 'ms',
           cell_selection: 'sea', start_date: this.day.date, end_date: this.day.date
         });
         const response = await fetch(`https://marine-api.open-meteo.com/v1/marine?${query}`, { signal: controller.signal });
         window.clearTimeout(timer);
         if (!response.ok) throw new Error(`Marine API returned ${response.status}`);
-        const frames = this.parse(await response.json());
-        const saved = { frames, updated: new Date().toISOString() };
+        const temperatures = this.parseTemperatures(await response.json());
+        const saved = { temperatures, updated: new Date().toISOString() };
         localStorage.setItem(this.cacheKey, JSON.stringify(saved));
-        return { frames, mode: 'live', updated: saved.updated };
+        return { frames: this.withTemperatures(temperatures), mode: 'temperature-model', updated: saved.updated };
       } catch (error) {
-        console.info('Live marine model unavailable; using supplied race scenario.', error.message);
-        return { frames: this.day.frames, mode: 'simulated' };
+        console.info('Regional marine temperature model unavailable; using tide-led planning scenario.', error.message);
+        return { frames: this.day.frames, mode: 'published-tide' };
       }
     }
-    parse(payload) {
+    parseTemperatures(payload) {
       const hourly = payload && payload.hourly;
-      const fields = ['time', 'sea_surface_temperature', 'ocean_current_velocity', 'ocean_current_direction', 'sea_level_height_msl'];
+      const fields = ['time', 'sea_surface_temperature'];
       if (!hourly || fields.some(field => !Array.isArray(hourly[field]))) throw new Error('Incomplete model response');
       if (fields.some(field => hourly[field].length !== hourly.time.length)) throw new Error('Mismatched model response');
-      const bearing = riverBearing();
       const rows = hourly.time.map((time, index) => ({ time, index })).filter(row => {
         const minute = Number(row.time.slice(11, 13)) * 60 + Number(row.time.slice(14, 16));
         return row.time.startsWith(this.day.date) && minute >= this.day.startMinute && minute <= this.day.endMinute;
       });
-      if (rows.length < 8) throw new Error('Model does not cover the requested race-day window');
-      const levels = rows.map(row => hourly.sea_level_height_msl[row.index]);
-      if (levels.some(value => !Number.isFinite(value))) throw new Error('Invalid sea-level model data');
-      const minLevel = Math.min(...levels); const maxLevel = Math.max(...levels); const span = Math.max(.001, maxLevel - minLevel);
-      const frames = rows.map(row => {
+      const requiredRows = Math.floor((this.day.endMinute - this.day.startMinute) / 60) + 1;
+      if (rows.length < requiredRows) throw new Error('Model does not cover the requested race-day window');
+      return rows.map(row => {
         const tempC = hourly.sea_surface_temperature[row.index];
-        const speed = hourly.ocean_current_velocity[row.index];
-        const heading = hourly.ocean_current_direction[row.index];
-        if (![tempC, speed, heading].every(Number.isFinite)) throw new Error('Invalid marine model data');
-        const projection = Math.cos(toRadians(heading - bearing));
+        if (!Number.isFinite(tempC)) throw new Error('Invalid marine temperature data');
         return {
           minute: Number(row.time.slice(11, 13)) * 60 + Number(row.time.slice(14, 16)),
-          tempC, speed, direction: speed < .05 ? 'slack' : projection >= 0 ? 'upstream' : 'downstream',
-          tidePercent: ((hourly.sea_level_height_msl[row.index] - minLevel) / span) * 100
+          tempC
         };
       });
-      return frames;
+    }
+    withTemperatures(temperatures) {
+      return this.day.frames.map(frame => {
+        const nextIndex = temperatures.findIndex(row => row.minute >= frame.minute);
+        if (nextIndex <= 0) return { ...frame, tempC: temperatures[0].tempC };
+        const after = temperatures[nextIndex] || temperatures[temperatures.length - 1];
+        const before = temperatures[nextIndex - 1];
+        const amount = (frame.minute - before.minute) / Math.max(1, after.minute - before.minute);
+        return { ...frame, tempC: lerp(before.tempC, after.tempC, amount) };
+      });
     }
   }
 
@@ -593,11 +599,11 @@
     }
     source(result) {
       const badge = this.el['data-badge'];
-      badge.className = `data-badge ${result.mode === 'live' ? 'live' : result.mode === 'cached' ? 'cached' : ''}`;
-      badge.textContent = 'Hydrographic data prediction';
+      badge.className = `data-badge ${result.mode === 'temperature-model' ? 'live' : ''}`;
+      badge.textContent = result.mode === 'temperature-model' ? 'Published tide · temp model' : 'Published tide timing';
       badge.title = result.updated
-        ? `Open-Meteo Marine model updated ${new Date(result.updated).toLocaleString()}`
-        : 'Race-day planning scenario. Ebb temperatures use a conservative tidal-mixing estimate; not an official tide prediction.';
+        ? `Pontevedra tide timing remains pinned to published extrema. Open-Meteo regional sea-surface-temperature model updated ${new Date(result.updated).toLocaleString()}. Current velocity remains a clearly labelled planning scenario.`
+        : 'Tide height and phase are pinned to published Pontevedra high/low-water times. Current velocity and temperature are planning scenarios, not measurements or an official river-current forecast.';
     }
     strategy(sample) {
       if (sample.speed >= .55) return 'High-flow caution — not a race-safety clearance. River flow can vary sharply across the channel and around structures. Use only the clear, buoyed course line; do not chase the bank near bridges, shallow water, obstacles, or eddies. Where the buoyed line is clear and officials permit it, slower near-bank water may reduce exposure to the faster mid-channel current.';
@@ -689,7 +695,7 @@
       this.playback.setDay(day); this.playback.reset();
       const result = await new MarineDataProvider(day).load();
       if (request !== this.requestId) return;
-      this.model = new TimelineModel(result.frames, day, result.mode === 'simulated'); this.hud.source(result); this.render(this.playback.minute);
+      this.model = new TimelineModel(result.frames, day, result.mode !== 'temperature-model'); this.hud.source(result); this.render(this.playback.minute);
     }
     render(minute, announce = false) { const sample = this.model.sample(minute); this.map.update(sample); this.hud.update(sample, this.model); if (announce) this.hud.announce(sample); }
   }
