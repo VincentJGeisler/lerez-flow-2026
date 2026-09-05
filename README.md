@@ -24,8 +24,13 @@ direct OpenStreetMap tiles, and Google Fonts from CDNs. Playback begins at
 - **Sprint distance — Thursday, 24 September:** 750 m, one-lap clockwise
   lower-reach loop with a 12:00–18:00 timeline. The visual trace is derived from the published
   [2026 Age Group Athletes Guide](https://cms.triathlon.org/assets/4863c99b-602d-4874-9340-5dcdab4531f6.pdf), which schedules the first AG Sprint wave at 15:45. The guide lists further waves through 18:25; the application window intentionally ends at 18:00.
+- **Mixed Team Relay (MTR) — Sunday, 27 September:** 250 m, one-lap
+  lower-reach relay swim with a 12:00–18:00 timeline. The guide schedules MTR
+  waves at 13:00, 13:03, 13:06, 13:15, and 13:21. The compact multi-buoy
+  course trace is digitised from the guide’s relay swim map (p. 68), not
+  derived from the Sprint course.
 
-Append `?day=sprint` to the local URL to open the Sprint view directly.
+Append `?day=sprint` or `?day=mtr` to the local URL to open those views directly.
 
 The compact **River safety guidance** link in the telemetry panel opens a local
 reference page with the current-specific caveats and links to World Triathlon,
@@ -61,6 +66,7 @@ predictions (CEST), rather than the original illustrative keyframes:
 | --- | --- | --- | --- | --- |
 | Sprint — Thu 24 Sep | 03:19 | 09:17 | **15:29** | 21:43 |
 | Standard — Sat 26 Sep | 04:23 | 10:24 | **16:35** | 22:46 |
+| Mixed Team Relay — Sun 27 Sep | 04:56 | 10:58 | **17:09** | 23:19 |
 
 That means the Sprint 15:45 wave is only 16 minutes after predicted high water,
 so the visual current starts close to slack rather than showing a 0.5 m/s ebb.

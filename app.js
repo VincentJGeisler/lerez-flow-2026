@@ -39,6 +39,14 @@
     [42.43462, -8.63520], SWIM_EXIT
   ];
   const SPRINT_ROUTE_TURN_INDEX = 6;
+  // Compact 250 m relay loop digitised from the organiser's Mixed Team Relay
+  // course map (athlete guide p. 68). It uses the same pontoon/exit precinct
+  // but is not a shortened Sprint route.
+  const MTR_ROUTE = [
+    SWIM_START, [42.435055, -8.63511], [42.43527, -8.63481],
+    [42.43465, -8.63530], [42.43434, -8.63550], SWIM_EXIT
+  ];
+  const MTR_TURN_INDEX = 2;
   // Used only to distribute the visual flow lanes; the orthophoto-derived mask is
   // the authoritative visible-water boundary.
   const CHANNEL_HALF_WIDTHS = [42, 50, 58, 64, 68, 70, 68, 62, 70];
@@ -55,6 +63,14 @@
     { minute: 1020, label: 'AG Sprint waves · 17:00' },
     { minute: 1080, label: 'AG Sprint wave · 18:00' }
   ];
+  const MTR_EVENTS = [
+    { minute: 780, label: 'MTR wave 1 · 13:00' },
+    { minute: 783, label: 'MTR wave 2 · 13:03' },
+    { minute: 786, label: 'MTR wave 3 · 13:06' },
+    { minute: 795, label: 'MTR wave 4 · 13:15' },
+    { minute: 801, label: 'MTR wave 5 · 13:21' },
+    { minute: 1029, label: 'High water · 17:09' }
+  ];
   // Published Pontevedra tide extrema, CEST (UTC+2).  Tide height is anchored
   // to these events. Velocity is deliberately a separately labelled planning
   // scenario: no public, course-reach current gauge/model was found.
@@ -70,6 +86,12 @@
       { minute: 557, percent: 0 },   // 09:17 low water
       { minute: 929, percent: 100 }, // 15:29 high water
       { minute: 1303, percent: 0 }   // 21:43 low water
+    ],
+    mtr: [
+      { minute: 296, percent: 100 },  // 04:56 high water
+      { minute: 658, percent: 0 },    // 10:58 low water
+      { minute: 1029, percent: 100 }, // 17:09 high water
+      { minute: 1399, percent: 0 }    // 23:19 low water
     ]
   };
   const RACE_DAYS = {
@@ -86,6 +108,13 @@
       routeType: 'sprint', startMinute: 720, endMinute: 1080,
       thermal: { riverTempC: 18.5, marineTempC: 16.5, exactUntilMinute: 0 },
       tideEvents: TIDE_PREDICTIONS.sprint, scenarioPeakSpeed: .8, events: SPRINT_EVENTS
+    },
+    mtr: {
+      id: 'mtr', date: '2026-09-27', title: 'Mixed Team Relay',
+      dateLabel: 'Sunday, 27 September', courseLabel: '250 m · 1 lap',
+      routeType: 'mtr', startMinute: 720, endMinute: 1080,
+      thermal: { riverTempC: 18.5, marineTempC: 16.5, exactUntilMinute: 0 },
+      tideEvents: TIDE_PREDICTIONS.mtr, scenarioPeakSpeed: .8, events: MTR_EVENTS
     }
   };
 
@@ -194,7 +223,8 @@
     cache() {
       try {
         const saved = JSON.parse(localStorage.getItem(this.cacheKey));
-        return saved && Array.isArray(saved.temperatures) && saved.temperatures.length >= 8 ? saved : null;
+        const requiredRows = Math.floor((this.day.endMinute - this.day.startMinute) / 60) + 1;
+        return saved && Array.isArray(saved.temperatures) && saved.temperatures.length >= requiredRows ? saved : null;
       } catch { return null; }
     }
     async load() {
@@ -506,7 +536,11 @@
       window.addEventListener('resize', () => this.map.invalidateSize({ pan: false }));
       requestAnimationFrame(() => requestAnimationFrame(() => this.scheduleConstrainedCourse()));
     }
-    referenceRoute() { return this.day.routeType === 'sprint' ? SPRINT_ROUTE : SWIM_ROUTE; }
+    referenceRoute() {
+      if (this.day.routeType === 'sprint') return SPRINT_ROUTE;
+      if (this.day.routeType === 'mtr') return MTR_ROUTE;
+      return SWIM_ROUTE;
+    }
     setDay(day) {
       this.day = day;
       this.drawCourse();
@@ -522,6 +556,9 @@
       }));
     }
     waterConstrainedRoute() {
+      // The relay is a compact multi-buoy loop digitised independently from the
+      // longer thalweg traces; do not distort it into the standard two-lane route.
+      if (this.day.routeType === 'mtr') return null;
       const channelPoint = (index, side) => {
         const center = this.map.latLngToContainerPoint(FLOW_AXIS[index]);
         const previous = this.map.latLngToContainerPoint(FLOW_AXIS[Math.max(0, index - 1)]);
@@ -554,6 +591,20 @@
     }
     drawCourse(constrained = null) {
       this.courseLayers?.forEach(layer => this.map.removeLayer(layer));
+      if (this.day.routeType === 'mtr') {
+        const route = MTR_ROUTE;
+        const turn = route[MTR_TURN_INDEX];
+        this.courseLayers = [
+          L.polyline(route, { pane: 'coursePane', color: '#1687a0', opacity: .42, weight: 12, lineCap: 'round', lineJoin: 'round' }).addTo(this.map),
+          L.polyline(route, { pane: 'coursePane', color: '#74f0f1', opacity: .94, weight: 3.5, lineCap: 'round', lineJoin: 'round', dashArray: '10 8' }).addTo(this.map),
+        ];
+        this.courseLayers.push(
+          ...this.marker(SWIM_START, 'Relay swim start · pontoon', 'course-dot', [42.43479, -8.63634]),
+          ...this.marker(turn, 'Relay buoy turn', 'course-dot turn-dot', [42.43545, -8.63575]),
+          ...this.marker(SWIM_EXIT, 'Relay swim exit', 'course-dot turn-dot', [42.43400, -8.63560])
+        );
+        return;
+      }
       const fallback = this.referenceRoute();
       const fallbackTurnIndex = this.day.routeType === 'sprint' ? SPRINT_ROUTE_TURN_INDEX : ROUTE_TURN_INDEX;
       const outbound = constrained?.outbound ?? fallback.slice(0, fallbackTurnIndex + 1);
@@ -688,6 +739,9 @@
       this.map?.setDay(day); this.hud?.setDay(day);
       document.getElementById('event-date').textContent = `World Triathlon Championships · ${day.dateLabel}`;
       document.getElementById('event-context').textContent = `${day.title} · ${day.courseLabel}`;
+      const relay = day.routeType === 'mtr';
+      document.getElementById('outbound-legend-text').textContent = relay ? 'Relay swim loop' : 'Outbound · clockwise';
+      document.getElementById('return-legend').style.display = relay ? 'none' : 'flex';
       document.querySelectorAll('[data-race-day]').forEach(button => {
         const selected = button.dataset.raceDay === day.id;
         button.classList.toggle('active', selected); button.setAttribute('aria-pressed', String(selected));

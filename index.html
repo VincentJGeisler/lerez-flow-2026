@@ -25,6 +25,7 @@
           <div class="day-switch mt-3" role="group" aria-label="Race day">
             <button class="active" type="button" data-race-day="standard" aria-pressed="true"><span>Standard</span><small>Sat 26</small></button>
             <button type="button" data-race-day="sprint" aria-pressed="false"><span>Sprint</span><small>Thu 24</small></button>
+            <button type="button" data-race-day="mtr" aria-pressed="false" title="Mixed Team Relay"><span>MTR</span><small>Sun 27</small></button>
           </div>
         </div>
         <button id="recenter-button" class="glass-button pointer-events-auto hidden sm:flex" type="button" title="Recenter swim course" aria-label="Recenter swim course">
@@ -73,8 +74,8 @@
         <p class="eyebrow mb-2">Water temperature</p>
         <div class="temperature-legend"></div>
         <div class="mt-1 flex justify-between text-[10px] text-slate-300"><span>18.5°C</span><span>16.5°C</span></div>
-        <div class="mt-4 flex items-center gap-2 text-xs text-slate-200"><span class="course-swatch"></span> Outbound · clockwise</div>
-        <div class="mt-2 flex items-center gap-2 text-xs text-slate-200"><span class="return-swatch"></span> Return to exit</div>
+        <div id="outbound-legend" class="mt-4 flex items-center gap-2 text-xs text-slate-200"><span class="course-swatch"></span> <span id="outbound-legend-text">Outbound · clockwise</span></div>
+        <div id="return-legend" class="mt-2 flex items-center gap-2 text-xs text-slate-200"><span class="return-swatch"></span> Return to exit</div>
         <div class="mt-2 flex items-center gap-2 text-xs text-slate-200"><span class="particle-swatch">→</span> Tidal flow</div>
       </section>
 
