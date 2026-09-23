@@ -22,6 +22,7 @@ body { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; }
 .data-badge { max-width: 148px; border: 1px solid rgba(103,232,249,.25); border-radius: 999px; background: rgba(34,211,238,.1); color: #bdf8ff; font-size: 9px; font-weight: 800; letter-spacing: .08em; line-height: 1; padding: 7px 8px; text-align: center; }
 .data-badge.live { border-color: rgba(134,239,172,.3); background: rgba(74,222,128,.1); color: #bbf7d0; }
 .data-badge.cached { border-color: rgba(196,181,253,.3); background: rgba(167,139,250,.1); color: #ddd6fe; }
+.data-badge.stale { border-color: rgba(251,191,36,.4); background: rgba(217,119,6,.14); color: #fde68a; }
 .strategy-box { border: 1px solid rgba(251,191,36,.16); border-radius: 12px; background: linear-gradient(120deg, rgba(217,119,6,.16), rgba(251,191,36,.04)); padding: 12px; }
 .regional-box { border: 1px solid rgba(103,232,249,.2); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
 .evidence-note { color: #b4c6d2; font-size: 11px; line-height: 1.5; margin-top: 7px; }

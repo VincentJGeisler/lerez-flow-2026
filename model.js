@@ -74,15 +74,17 @@
     }
     tideStage(sample) { return sample.stage; }
     regional(minute) {
-      if (!REGIONAL || this.day.date !== REGIONAL.date) return null;
+      const forecast = REGIONAL?.forecastByDate?.[this.day.date];
+      if (!forecast) return null;
       const lower = Math.floor(minute / 60) * 60, upper = Math.ceil(minute / 60) * 60;
-      const rows = REGIONAL.cells.flatMap(cell => cell.rows.filter(row => row.minute === lower || row.minute === upper));
-      if (rows.length !== REGIONAL.cells.length * (lower === upper ? 1 : 2)) return null;
+      const rows = forecast.cells.flatMap(cell => cell.rows.filter(row => row.minute === lower || row.minute === upper));
+      if (rows.length !== forecast.cells.length * (lower === upper ? 1 : 2)) return null;
       const speeds = rows.map(row => Math.hypot(row.u, row.v));
       // Coarse vectors are generally NE/SW here. This describes regional
       // tendency only; no swimmer-depth or lane-specific projection is claimed.
       const signs = rows.map(row => Math.sign(row.u + row.v));
       return { min: Math.min(...speeds), max: Math.max(...speeds), lower, upper,
+        run: forecast.run, retrievedAt: forecast.retrievedAt || REGIONAL.retrievedAt || null,
         direction: signs.every(sign => sign > 0) ? 'Upstream tendency' : signs.every(sign => sign < 0) ? 'Downstream tendency' : 'Mixed / turning tendency' };
     }
     interpretation(sample) {

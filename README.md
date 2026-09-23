@@ -22,7 +22,9 @@ entry. Sprint opens at 15:45 and extends to 19:00. Query parameters
   “LOW CURRENT AT THE END” for the 15:45–18:55 window.
 - A saved official MeteoGalicia MOHID forecast, run 23 September 00:00 UTC,
   supplies nearby regional current vectors for 24 September 12:00–19:00 CEST.
-  The displayed spread covers three roughly 300 m cells and bracketing hours.
+  A GitHub Actions workflow checks the official feed every six hours and adds
+  each race-day snapshot once its entire displayed timeline is covered. The
+  displayed spread covers three roughly 300 m cells and bracketing hours.
   It is not a swim-course speed range or confidence interval. Current depth is
   unspecified in the retrieved metadata. Raw responses are in regional.js.
 - Course speed, bank/core differences, local slack timing and water temperature
@@ -38,9 +40,11 @@ methodology and limitations. Nothing is an official race-safety clearance.
 ## Files and checks
 
 - model.js: tide stage, organizer windows and regional hourly aggregation.
-- regional.js: immutable dated regional forecast snapshot and raw CSV evidence.
+- regional.js: dated regional forecast snapshots and raw CSV evidence.
 - app.js: map and user interface.
 - model.test.js: data, date, time and uncertainty regression checks.
+- tools/update-regional.js and `.github/workflows/update-regional-forecast.yml`:
+  validated feed refresh and publishing schedule. Trigger manually to check early.
 
 ```sh
 node --test model.test.js

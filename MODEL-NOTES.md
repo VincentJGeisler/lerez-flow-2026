@@ -29,7 +29,7 @@ for Standard, so interpolation before its first low-water entry is unavailable.
 Provider: MeteoGalicia MOHID Vigo/Pontevedra. Run 2026-09-23 00:00 UTC.
 Dataset: `MyCOAST_V1_MeteoGalicia_MOHID_vigo_01hr_2026092300_PR.ncml`.
 Retrieved 23 September. Forecast metadata covers 23 Sep 00:00 to 25 Sep 00:00 UTC.
-The app embeds 24 Sep 10:00–17:00 UTC (12:00–19:00 CEST).
+The saved Sprint forecast embeds 24 Sep 10:00–17:00 UTC (12:00–19:00 CEST).
 
 [Dataset metadata](https://thredds-meteo.cesga.es/thredds/ncss/grid/MyCoast/MOHID/vigo/MyCOAST_V1_MeteoGalicia_MOHID_vigo_01hr_2026092300_PR.ncml/dataset.xml)
 specifies hourly `uo`, `vo` (eastward/northward velocity, m/s) and `water_level`.
@@ -49,7 +49,14 @@ The requested points are **not** three independently resolved course locations.
 Regional shorelines and bends can be poorly represented at this grid spacing.
 
 `regional.js` retains every raw CSV response, query URL, requested and returned
-coordinates, run timestamp, and parsed hourly vector. Speed is `hypot(uo, vo)`.
+coordinates, run timestamp, and parsed hourly vector. The scheduled GitHub
+workflow checks every six hours; it saves an individual date only after the
+current official run covers that date's entire displayed timeline at every
+course cell, and commits changes to `main` for GitHub Pages to publish. A
+manual `workflow_dispatch` can request an extra check. When a day is not yet
+covered or a response is incomplete, its previous valid snapshot is retained.
+The badge marks snapshots older than 18 hours as saved and stale; no missing
+forecast is filled by reusing another race date. Speed is `hypot(uo, vo)`.
 At an exact hour we display the min/max over the three cells. Between hours we
 display the min/max over both bracketing hours and all three cells. We avoid
 interpolating opposing hourly vectors into a precise unsupported slack time.
@@ -96,5 +103,5 @@ cannot establish a defensible numerical course speed from tide times alone.
 
 [NOAA explains why local tide and slack times cannot be equated](https://tidesandcurrents.noaa.gov/faq.html).
 
-Verification: `node --test model.test.js`; browser checks cover date selection,
-time entry, late Sprint times, optional arrows and mobile layout.
+The update script can be run manually with `node tools/update-regional.js`; add
+`--dry-run` to validate and report the available days without writing a snapshot.

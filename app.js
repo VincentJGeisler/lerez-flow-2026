@@ -393,11 +393,26 @@
       this.el['strategy-text'].textContent = model.interpretation(sample);
       this.el['core-flow'].textContent = 'Unknown';
       this.el['edge-flow'].textContent = 'Unknown';
-      this.el['data-badge'].textContent = 'Reviewed 23 Sep';
-      document.getElementById('organizer-guidance').textContent = 'Organizer: “' + this.day.guidance + '” · ' + timeLabel(this.day.raceStart) + '–' + timeLabel(this.day.raceEnd) + ' CEST. Qualitative guidance; no measured speeds supplied.';
       const regional = model.regional(sample.minute);
+      const badge = this.el['data-badge'];
+      badge.className = 'data-badge';
+      if (regional?.run) {
+        const ageHours = Math.max(0, (Date.now() - Date.parse(regional.run)) / 3600000);
+        badge.classList.toggle('stale', ageHours >= 18);
+        badge.textContent = ageHours >= 18
+          ? 'Model run · ' + Math.floor(ageHours) + 'h old'
+          : 'Model run · ' + new Date(regional.run).toLocaleString([], { dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC';
+      } else {
+        const retrievedOn = REGIONAL?.forecastByDate?.[this.day.date]?.retrievedOn;
+        badge.textContent = regional ? `Saved forecast · ${retrievedOn || 'date only'} · time unavailable` : 'Tide sheet · reviewed 23 Sep';
+      }
+      document.getElementById('organizer-guidance').textContent = 'Organizer: “' + this.day.guidance + '” · ' + timeLabel(this.day.raceStart) + '–' + timeLabel(this.day.raceEnd) + ' CEST. Qualitative guidance; no measured speeds supplied.';
       document.getElementById('regional-speed').textContent = regional ? regional.min.toFixed(2) + '–' + regional.max.toFixed(2) + ' m/s' : 'No snapshot for this date/time';
-      document.getElementById('regional-detail').textContent = regional ? regional.direction + ' · ' + timeLabel(regional.lower) + (regional.upper === regional.lower ? '' : '–' + timeLabel(regional.upper)) + ' CEST hourly cells' : 'The saved regional forecast covers 24 September, 12:00–19:00 CEST only.';
+      document.getElementById('regional-detail').textContent = regional ? regional.direction + ' · ' + timeLabel(regional.lower) + (regional.upper === regional.lower ? '' : '–' + timeLabel(regional.upper)) + ' CEST hourly cells' : 'No saved model snapshot currently covers this date and timeline hour.';
+      const forecast = REGIONAL?.forecastByDate?.[this.day.date];
+      document.getElementById('regional-run-detail').textContent = forecast
+        ? 'MOHID run ' + new Date(forecast.run).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC' + (regional?.retrievedAt ? ' · downloaded ' + new Date(regional.retrievedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '') + ' · refresh checked every 6 hours.'
+        : 'Waiting for an official model run that covers this date and its full timeline.';
       const closest = this.day.events.filter(event => Math.abs(event.minute - sample.minute) <= 5).sort((a,b) => Math.abs(a.minute - sample.minute) - Math.abs(b.minute - sample.minute))[0];
       this.el['event-label'].textContent = closest ? closest.label : tide + ' · CEST (UTC+2)';
       this.ticks.querySelectorAll('.event-tick').forEach(tick => tick.classList.toggle('active', Math.abs(Number(tick.dataset.minute) - sample.minute) <= 5));

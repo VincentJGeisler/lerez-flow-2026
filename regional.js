@@ -1,6 +1,6 @@
 /* Official regional forecast snapshot. Raw responses retained for audit. */
 (() => {
-  const snapshot = {
+  const legacySnapshot = {
   "provider": "MeteoGalicia MOHID Vigo/Pontevedra",
   "run": "2026-09-23T00:00:00Z",
   "retrievedOn": "2026-09-23",
@@ -224,6 +224,16 @@
     }
   ]
 };
+  const snapshot = {
+    schemaVersion: 2,
+    courseCells: [
+      { name: 'start', requested: { lat: 42.43455, lon: -8.63615 } },
+      { name: 'center', requested: { lat: 42.4357, lon: -8.634 } },
+      { name: 'turn', requested: { lat: 42.43693, lon: -8.63273 } }
+    ],
+    retrievedAt: null,
+    forecastByDate: { [legacySnapshot.date]: legacySnapshot }
+  };
   if (typeof module !== 'undefined' && module.exports) module.exports = snapshot;
   else globalThis.LerezRegional = snapshot;
 })();

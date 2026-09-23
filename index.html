@@ -70,7 +70,7 @@
           <p id="regional-speed" class="metric-text">Loading snapshot…</p>
           <p id="regional-detail" class="evidence-note"></p>
           <p class="evidence-note">Spread across three nearby cells and the bracketing hours. Not a swim-course speed range or confidence interval. Current depth is unspecified in the retrieved metadata.</p>
-          <p class="evidence-note">MOHID run: 23 Sep 2026, 00:00 UTC · saved snapshot, not live.</p>
+          <p id="regional-run-detail" class="evidence-note">Official MOHID snapshot · automatic refresh every 6 hours when each forecast covers its race timeline.</p>
         </div>
         <div class="strategy-box">
           <p class="eyebrow text-amber-200/90">Tide-based interpretation</p>
@@ -83,7 +83,7 @@
           <summary>Sources and limits · checked 23 Sep 2026</summary>
           <p><a href="https://cms.triathlon.org/assets/57367f1b-8492-4ed5-9eaa-fda26bdfd3a0.jpg" target="_blank" rel="noopener">Organizer tide and current sheet</a> supplies race windows and tide times. “NO CURRENT” is quoted guidance, not a measurement of zero.</p>
           <p>The sheet has inconsistent water-height entries; absolute heights are not used. Tide extrema do not establish local slack times.</p>
-          <p><a href="https://thredds-meteo.cesga.es/thredds/ncss/grid/MyCoast/MOHID/vigo/MyCOAST_V1_MeteoGalicia_MOHID_vigo_01hr_2026092300_PR.ncml/dataset.xml" target="_blank" rel="noopener">Regional model metadata</a> · <a href="MODEL-NOTES.md" target="_blank" rel="noopener">Model audit and data provenance</a></p>
+          <p><a href="https://thredds-meteo.cesga.es/thredds/ncss/grid/MyCoast/MOHID/vigo/latest.ncml/dataset.xml" target="_blank" rel="noopener">Current regional model metadata</a> · <a href="MODEL-NOTES.md" target="_blank" rel="noopener">Model audit and data provenance</a></p>
           <p>No local discharge, surveyed depths, lane-current measurements, or course validation are available. Regional grid spread does not bound the actual current.</p>
         </details>
       </section>
@@ -130,7 +130,7 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="regional.js?v=20260923" defer></script>
+    <script src="regional.js" defer></script>
     <script src="model.js?v=20260923" defer></script>
     <script src="app.js?v=20260923" defer></script>
   </body>
