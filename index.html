@@ -18,13 +18,13 @@
         <div class="pointer-events-auto">
           <div class="flex items-center gap-2">
             <span class="inline-block h-2.5 w-2.5 rounded-full bg-cyan-300 shadow-[0_0_16px_3px_rgba(103,232,249,.65)]"></span>
-            <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-200">Flow intelligence</p>
+            <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-200">Race current outlook</p>
           </div>
           <h1 class="mt-1 text-xl font-semibold tracking-tight text-white sm:text-2xl">Lérez Flow <span class="font-normal text-slate-400">/ Pontevedra 2026</span></h1>
-          <p id="event-date" class="mt-1 text-xs text-slate-300">World Triathlon Championships · Saturday, 26 September</p>
+          <p id="event-date" class="mt-1 text-xs text-slate-300">World Triathlon Championships · Thursday, 24 September</p>
           <div class="day-switch mt-3" role="group" aria-label="Race day">
-            <button class="active" type="button" data-race-day="standard" aria-pressed="true"><span>Standard</span><small>Sat 26</small></button>
-            <button type="button" data-race-day="sprint" aria-pressed="false"><span>Sprint</span><small>Thu 24</small></button>
+            <button type="button" data-race-day="standard" aria-pressed="false"><span>Standard</span><small>Sat 26</small></button>
+            <button class="active" type="button" data-race-day="sprint" aria-pressed="true"><span>Sprint</span><small>Thu 24</small></button>
             <button type="button" data-race-day="mtr" aria-pressed="false" title="Mixed Team Relay"><span>MTR</span><small>Sun 27</small></button>
           </div>
         </div>
@@ -34,49 +34,65 @@
         </button>
       </header>
 
-      <section class="hud-panel absolute right-4 top-28 z-[700] w-[min(22rem,calc(100%-2rem))] sm:right-6 sm:top-32" aria-label="Live telemetry">
+      <section class="hud-panel absolute right-4 top-28 z-[700] w-[min(22rem,calc(100%-2rem))] sm:right-6 sm:top-32" aria-label="Race planning outlook">
         <div class="flex items-start justify-between gap-3 border-b border-white/10 pb-4">
           <div>
-            <p id="event-context" class="eyebrow">Standard distance · 1,500 m · 1 lap</p>
-            <time id="hud-time" class="mt-1 block font-mono text-3xl font-semibold tracking-tight text-white">06:00 AM</time>
+            <p id="event-context" class="eyebrow">Sprint distance · 750 m · 1 lap</p>
+            <time id="hud-time" class="mt-1 block font-mono text-3xl font-semibold tracking-tight text-white">15:45</time>
+            <label class="time-picker" for="selected-time">Race time (CEST) <input id="selected-time" type="time" value="15:45" min="12:00" max="19:00" step="60" /></label>
           </div>
-          <span id="data-badge" class="data-badge">Published tide timing</span>
+          <span id="data-badge" class="data-badge">Reviewed 23 Sep</span>
         </div>
         <div class="grid grid-cols-2 gap-x-4 gap-y-4 py-4">
           <div>
             <p class="eyebrow">Tide stage</p>
-            <p id="tide-stage" class="metric-text">Low water</p>
-            <p id="tide-detail" class="mt-0.5 text-xs text-slate-400">0% full</p>
+            <p id="tide-stage" class="metric-text">—</p>
+            <p id="tide-detail" class="mt-0.5 text-xs text-slate-400">High water 15:40 CEST</p>
           </div>
           <div>
             <p class="eyebrow">Water temp</p>
-            <p id="water-temp" class="metric-text">18.5°C</p>
-            <p id="water-temp-f" class="mt-0.5 text-xs text-slate-400">65.3°F</p>
+            <p id="water-temp" class="metric-text">Unknown</p>
+            <p id="water-temp-f" class="mt-0.5 text-xs text-slate-400">No course measurement</p>
           </div>
           <div class="col-span-2 rounded-xl border border-cyan-300/10 bg-cyan-300/[.06] px-3 py-2.5">
-            <p class="eyebrow text-cyan-200/80">Current scenario</p>
-            <p id="current-speed" class="mt-0.5 font-mono text-xl font-semibold text-cyan-100">0.0 <span class="font-sans text-sm font-normal text-cyan-100/70">m/s</span></p>
-            <p id="current-direction" class="mt-0.5 text-xs font-medium text-cyan-200">Slack water</p>
+            <p class="eyebrow text-cyan-200/80">Course current outlook</p>
+            <p id="current-speed" class="mt-0.5 text-lg font-semibold text-cyan-100">Low current late in race</p>
+            <p id="current-direction" class="mt-0.5 text-xs font-medium text-cyan-200">Course speed and slack timing unverified</p>
+            <p id="organizer-guidance" class="evidence-note"></p>
           </div>
           <div class="col-span-2 grid grid-cols-2 gap-2 text-[10px]">
-            <div class="flow-readout flow-readout-core"><span>Mid-channel</span><strong id="core-flow">0.0 m/s</strong></div>
-            <div class="flow-readout"><span>River edges</span><strong id="edge-flow">0.0 m/s</strong></div>
+            <div class="flow-readout flow-readout-core"><span>Mid-channel</span><strong id="core-flow">Unknown</strong></div>
+            <div class="flow-readout"><span>River edges</span><strong id="edge-flow">Unknown</strong></div>
           </div>
         </div>
+        <div class="regional-box">
+          <p class="eyebrow">Nearby regional model · ~300 m grid</p>
+          <p id="regional-speed" class="metric-text">Loading snapshot…</p>
+          <p id="regional-detail" class="evidence-note"></p>
+          <p class="evidence-note">Spread across three nearby cells and the bracketing hours. Not a swim-course speed range or confidence interval. Current depth is unspecified in the retrieved metadata.</p>
+          <p class="evidence-note">MOHID run: 23 Sep 2026, 00:00 UTC · saved snapshot, not live.</p>
+        </div>
         <div class="strategy-box">
-          <p class="eyebrow text-amber-200/90">Strategy call</p>
-          <p id="strategy-text" class="mt-1.5 text-sm leading-5 text-slate-100">Slack water. Use the cleanest line and settle into rhythm before the flood builds.</p>
+          <p class="eyebrow text-amber-200/90">Tide-based interpretation</p>
+          <p id="strategy-text" class="mt-1.5 text-sm leading-5 text-slate-100">Local current direction and slack timing are unresolved.</p>
           <a class="safety-guidance-link" href="safety.html" target="_blank" rel="noopener">River safety guidance <span aria-hidden="true">↗</span></a>
         </div>
+        <label class="arrow-option"><input id="show-tide-arrows" type="checkbox" /> Show schematic tide-direction arrows</label>
+        <p class="evidence-note">Arrows illustrate rising/falling tide only. Their motion is not a current-speed forecast.</p>
+        <details class="source-details">
+          <summary>Sources and limits · checked 23 Sep 2026</summary>
+          <p><a href="https://cms.triathlon.org/assets/57367f1b-8492-4ed5-9eaa-fda26bdfd3a0.jpg" target="_blank" rel="noopener">Organizer tide and current sheet</a> supplies race windows and tide times. “NO CURRENT” is quoted guidance, not a measurement of zero.</p>
+          <p>The sheet has inconsistent water-height entries; absolute heights are not used. Tide extrema do not establish local slack times.</p>
+          <p><a href="https://thredds-meteo.cesga.es/thredds/ncss/grid/MyCoast/MOHID/vigo/MyCOAST_V1_MeteoGalicia_MOHID_vigo_01hr_2026092300_PR.ncml/dataset.xml" target="_blank" rel="noopener">Regional model metadata</a> · <a href="MODEL-NOTES.md" target="_blank" rel="noopener">Model audit and data provenance</a></p>
+          <p>No local discharge, surveyed depths, lane-current measurements, or course validation are available. Regional grid spread does not bound the actual current.</p>
+        </details>
       </section>
 
       <section class="legend-panel absolute bottom-44 left-4 z-[700] hidden sm:block" aria-label="Map legend">
-        <p class="eyebrow mb-2">Water temperature</p>
-        <div class="temperature-legend"></div>
-        <div class="mt-1 flex justify-between text-[10px] text-slate-300"><span>18.5°C</span><span>16.5°C</span></div>
+        <p class="eyebrow mb-2">Swim course</p>
         <div id="outbound-legend" class="mt-4 flex items-center gap-2 text-xs text-slate-200"><span class="course-swatch"></span> <span id="outbound-legend-text">Outbound · clockwise</span></div>
         <div id="return-legend" class="mt-2 flex items-center gap-2 text-xs text-slate-200"><span class="return-swatch"></span> Return to exit</div>
-        <div class="mt-2 flex items-center gap-2 text-xs text-slate-200"><span class="particle-swatch">→</span> Tidal flow</div>
+        <div class="mt-2 flex items-center gap-2 text-xs text-slate-200"><span class="particle-swatch">→</span> Optional tide tendency</div>
       </section>
 
       <section class="control-dock absolute bottom-0 left-0 z-[750] w-full max-w-xl" aria-label="Timeline playback controls">
@@ -88,7 +104,7 @@
             <button id="pause-button" class="control-button" type="button" aria-label="Pause timeline" title="Pause timeline">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14m8-14v14"/></svg>
             </button>
-            <button id="reset-button" class="control-button" type="button" aria-label="Reset timeline to 6 AM" title="Reset timeline">
+            <button id="reset-button" class="control-button" type="button" aria-label="Reset timeline to start" title="Reset timeline">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M4.6 10A8 8 0 1 1 6.9 18"/></svg>
             </button>
           </div>
@@ -110,9 +126,12 @@
         <p class="dock-disclaimer">Planning visualization only — not for navigation or race safety. Schedule subject to official race briefing.</p>
       </section>
       <div id="live-region" class="sr-only" aria-live="polite"></div>
+      <noscript>This outlook needs JavaScript. See the organizer's tide sheet linked above for race information.</noscript>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="app.js" defer></script>
+    <script src="regional.js?v=20260923" defer></script>
+    <script src="model.js?v=20260923" defer></script>
+    <script src="app.js?v=20260923" defer></script>
   </body>
 </html>

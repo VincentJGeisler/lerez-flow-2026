@@ -51,238 +51,9 @@
   // the authoritative visible-water boundary.
   const CHANNEL_HALF_WIDTHS = [42, 50, 58, 64, 68, 70, 68, 62, 70];
   const WATER_MASK_BOUNDS = { south: 42.431, west: -8.640, north: 42.443, east: -8.630 };
-  const STANDARD_EVENTS = [
-    { minute: 624, label: 'Low water · 10:24' },
-    { minute: 420, label: 'AG start windows · 07:00' },
-    { minute: 540, label: 'Elite women start · 09:00' },
-    { minute: 995, label: 'High water · 16:35' }
-  ];
-  const SPRINT_EVENTS = [
-    { minute: 929, label: 'High water · 15:29' },
-    { minute: 945, label: 'AG Sprint wave 1 · 15:45' },
-    { minute: 1020, label: 'AG Sprint waves · 17:00' },
-    { minute: 1080, label: 'AG Sprint wave · 18:00' }
-  ];
-  const MTR_EVENTS = [
-    { minute: 780, label: 'MTR wave 1 · 13:00' },
-    { minute: 783, label: 'MTR wave 2 · 13:03' },
-    { minute: 786, label: 'MTR wave 3 · 13:06' },
-    { minute: 795, label: 'MTR wave 4 · 13:15' },
-    { minute: 801, label: 'MTR wave 5 · 13:21' },
-    { minute: 1029, label: 'High water · 17:09' }
-  ];
-  // Published Pontevedra tide extrema, CEST (UTC+2).  Tide height is anchored
-  // to these events. Velocity is deliberately a separately labelled planning
-  // scenario: no public, course-reach current gauge/model was found.
-  const TIDE_PREDICTIONS = {
-    standard: [
-      { minute: 263, percent: 100 }, // 04:23 high water
-      { minute: 624, percent: 0 },   // 10:24 low water
-      { minute: 995, percent: 100 }, // 16:35 high water
-      { minute: 1366, percent: 0 }   // 22:46 low water
-    ],
-    sprint: [
-      { minute: 199, percent: 100 }, // 03:19 high water
-      { minute: 557, percent: 0 },   // 09:17 low water
-      { minute: 929, percent: 100 }, // 15:29 high water
-      { minute: 1303, percent: 0 }   // 21:43 low water
-    ],
-    mtr: [
-      { minute: 296, percent: 100 },  // 04:56 high water
-      { minute: 658, percent: 0 },    // 10:58 low water
-      { minute: 1029, percent: 100 }, // 17:09 high water
-      { minute: 1399, percent: 0 }    // 23:19 low water
-    ]
-  };
-  const RACE_DAYS = {
-    standard: {
-      id: 'standard', date: '2026-09-26', title: 'Standard distance',
-      dateLabel: 'Saturday, 26 September', courseLabel: '1,500 m · 1 lap',
-      routeType: 'standard', startMinute: 360, endMinute: 1080,
-      thermal: { riverTempC: 18.5, marineTempC: 16.5, exactUntilMinute: 0 },
-      tideEvents: TIDE_PREDICTIONS.standard, scenarioPeakSpeed: .8, events: STANDARD_EVENTS
-    },
-    sprint: {
-      id: 'sprint', date: '2026-09-24', title: 'Sprint distance',
-      dateLabel: 'Thursday, 24 September', courseLabel: '750 m · 1 lap',
-      routeType: 'sprint', startMinute: 720, endMinute: 1080,
-      thermal: { riverTempC: 18.5, marineTempC: 16.5, exactUntilMinute: 0 },
-      tideEvents: TIDE_PREDICTIONS.sprint, scenarioPeakSpeed: .8, events: SPRINT_EVENTS
-    },
-    mtr: {
-      id: 'mtr', date: '2026-09-27', title: 'Mixed Team Relay',
-      dateLabel: 'Sunday, 27 September', courseLabel: '250 m · 1 lap',
-      routeType: 'mtr', startMinute: 720, endMinute: 1080,
-      thermal: { riverTempC: 18.5, marineTempC: 16.5, exactUntilMinute: 0 },
-      tideEvents: TIDE_PREDICTIONS.mtr, scenarioPeakSpeed: .8, events: MTR_EVENTS
-    }
-  };
-
+  const { RACE_DAYS, TimelineModel, timeLabel } = window.LerezModel;
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const lerp = (from, to, amount) => from + (to - from) * amount;
-
-  function timeLabel(minute) {
-    const hour = Math.floor(minute / 60);
-    const min = Math.round(minute % 60);
-    const suffix = hour >= 12 ? 'PM' : 'AM';
-    const h = hour % 12 || 12;
-    return `${h}:${String(min).padStart(2, '0')} ${suffix}`;
-  }
-
-  /**
-   * Creates a smooth, tide-height-led planning timeline from the published
-   * Pontevedra high/low-water times.  It does not claim to measure velocity:
-   * the speed is only a visual current scenario that reaches its maximum at
-   * mid-phase and is zero at the published turning points.
-   */
-  function buildTideScenarioFrames(day) {
-    const extrema = day.tideEvents;
-    const minutes = new Set([day.startMinute, day.endMinute, ...extrema.map(event => event.minute)]);
-    for (let minute = day.startMinute; minute <= day.endMinute; minute += 5) minutes.add(minute);
-    return [...minutes].sort((a, b) => a - b).map(minute => {
-      const afterIndex = extrema.findIndex(event => event.minute >= minute);
-      const after = extrema[afterIndex < 0 ? extrema.length - 1 : afterIndex];
-      const before = extrema[Math.max(0, afterIndex - 1)];
-      const span = Math.max(1, after.minute - before.minute);
-      const phase = clamp((minute - before.minute) / span, 0, 1);
-      const eased = .5 - .5 * Math.cos(Math.PI * phase);
-      const rising = after.percent > before.percent;
-      const speed = day.scenarioPeakSpeed * Math.sin(Math.PI * phase);
-      return {
-        minute,
-        tempC: day.thermal.marineTempC,
-        // Avoid presenting a directional current at the predicted turning point.
-        speed: speed < .025 ? 0 : speed,
-        direction: speed < .025 ? 'slack' : rising ? 'upstream' : 'downstream',
-        tidePercent: lerp(before.percent, after.percent, eased)
-      };
-    });
-  }
-
-  Object.values(RACE_DAYS).forEach(day => { day.frames = buildTideScenarioFrames(day); });
-
-  /** Finds values between source points while retaining exact supplied values. */
-  class TimelineModel {
-    constructor(frames, day, useThermalScenario = false) {
-      this.frames = frames.slice().sort((a, b) => a.minute - b.minute);
-      this.startMinute = day?.startMinute ?? START_MINUTE; this.endMinute = day?.endMinute ?? END_MINUTE;
-      this.day = day; this.useThermalScenario = useThermalScenario;
-    }
-    scenarioTemperature(sample) {
-      if (!this.useThermalScenario || !this.day?.thermal || sample.minute <= this.day.thermal.exactUntilMinute) return sample.tempC;
-      const { riverTempC, marineTempC } = this.day.thermal;
-      const tide = clamp(sample.tidePercent / 100, 0, 1);
-      // Flood brings the cooler marine endmember upriver quickly. On ebb the
-      // water mass retains a cold-water memory, then progressively warms as the
-      // river fraction replaces it. This is a conservative mixing estimate—not
-      // a measured river-temperature forecast.
-      const riverFraction = sample.direction === 'downstream'
-        ? .02 + .96 * Math.pow(1 - tide, .72)
-        : sample.direction === 'slack'
-          ? (tide < .05 ? 1 : 0)
-          : .10 + .80 * (1 - tide);
-      return marineTempC + (riverTempC - marineTempC) * clamp(riverFraction, 0, 1);
-    }
-    sample(minute) {
-      const safeMinute = clamp(minute, this.startMinute, this.endMinute);
-      const nextIndex = this.frames.findIndex(frame => frame.minute >= safeMinute);
-      if (nextIndex <= 0) return { ...this.frames[0] };
-      const after = this.frames[nextIndex] || this.frames[this.frames.length - 1];
-      const before = this.frames[nextIndex - 1];
-      const progress = after.minute === before.minute ? 0 : (safeMinute - before.minute) / (after.minute - before.minute);
-      const direction = before.direction === after.direction ? before.direction : (progress < .5 ? before.direction : after.direction);
-      const sample = {
-        minute: safeMinute,
-        tempC: lerp(before.tempC, after.tempC, progress),
-        speed: lerp(before.speed, after.speed, progress),
-        tidePercent: lerp(before.tidePercent, after.tidePercent, progress),
-        direction
-      };
-      sample.tempC = this.scenarioTemperature(sample);
-      return sample;
-    }
-    tideStage(sample) {
-      if (sample.speed < .05) return sample.tidePercent > 95 ? 'High water' : 'Low water';
-      return sample.direction === 'upstream' ? 'Flood tide' : 'Ebb tide';
-    }
-  }
-
-  /**
-   * Supplements the pinned tide timeline with temperature only when a regional
-   * marine model is available. Its coarse ocean-current field must never
-   * overwrite the published Pontevedra high/low-water times or masquerade as a
-   * measurement in this constricted river reach.
-   */
-  class MarineDataProvider {
-    constructor(day) { this.day = day; this.cacheKey = `lerez-flow-temperature-v2-${day.date}`; }
-    inForecastWindow() {
-      const localDate = new Date(`${this.day.date}T${String(Math.floor(this.day.endMinute / 60)).padStart(2, '0')}:00:00+02:00`);
-      const daysAway = (localDate - new Date()) / 86400000;
-      return daysAway >= -1 && daysAway <= 8;
-    }
-    cache() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(this.cacheKey));
-        const requiredRows = Math.floor((this.day.endMinute - this.day.startMinute) / 60) + 1;
-        return saved && Array.isArray(saved.temperatures) && saved.temperatures.length >= requiredRows ? saved : null;
-      } catch { return null; }
-    }
-    async load() {
-      const cached = this.cache();
-      if (cached) return { frames: this.withTemperatures(cached.temperatures), mode: 'temperature-model', updated: cached.updated };
-      if (!this.inForecastWindow()) return { frames: this.day.frames, mode: 'published-tide' };
-      try {
-        const controller = new AbortController();
-        const timer = window.setTimeout(() => controller.abort(), 8000);
-        const query = new URLSearchParams({
-          latitude: '42.4367', longitude: '-8.6304',
-          hourly: 'sea_surface_temperature',
-          timezone: 'Europe/Madrid', temperature_unit: 'celsius', wind_speed_unit: 'ms',
-          cell_selection: 'sea', start_date: this.day.date, end_date: this.day.date
-        });
-        const response = await fetch(`https://marine-api.open-meteo.com/v1/marine?${query}`, { signal: controller.signal });
-        window.clearTimeout(timer);
-        if (!response.ok) throw new Error(`Marine API returned ${response.status}`);
-        const temperatures = this.parseTemperatures(await response.json());
-        const saved = { temperatures, updated: new Date().toISOString() };
-        localStorage.setItem(this.cacheKey, JSON.stringify(saved));
-        return { frames: this.withTemperatures(temperatures), mode: 'temperature-model', updated: saved.updated };
-      } catch (error) {
-        console.info('Regional marine temperature model unavailable; using tide-led planning scenario.', error.message);
-        return { frames: this.day.frames, mode: 'published-tide' };
-      }
-    }
-    parseTemperatures(payload) {
-      const hourly = payload && payload.hourly;
-      const fields = ['time', 'sea_surface_temperature'];
-      if (!hourly || fields.some(field => !Array.isArray(hourly[field]))) throw new Error('Incomplete model response');
-      if (fields.some(field => hourly[field].length !== hourly.time.length)) throw new Error('Mismatched model response');
-      const rows = hourly.time.map((time, index) => ({ time, index })).filter(row => {
-        const minute = Number(row.time.slice(11, 13)) * 60 + Number(row.time.slice(14, 16));
-        return row.time.startsWith(this.day.date) && minute >= this.day.startMinute && minute <= this.day.endMinute;
-      });
-      const requiredRows = Math.floor((this.day.endMinute - this.day.startMinute) / 60) + 1;
-      if (rows.length < requiredRows) throw new Error('Model does not cover the requested race-day window');
-      return rows.map(row => {
-        const tempC = hourly.sea_surface_temperature[row.index];
-        if (!Number.isFinite(tempC)) throw new Error('Invalid marine temperature data');
-        return {
-          minute: Number(row.time.slice(11, 13)) * 60 + Number(row.time.slice(14, 16)),
-          tempC
-        };
-      });
-    }
-    withTemperatures(temperatures) {
-      return this.day.frames.map(frame => {
-        const nextIndex = temperatures.findIndex(row => row.minute >= frame.minute);
-        if (nextIndex <= 0) return { ...frame, tempC: temperatures[0].tempC };
-        const after = temperatures[nextIndex] || temperatures[temperatures.length - 1];
-        const before = temperatures[nextIndex - 1];
-        const amount = (frame.minute - before.minute) / Math.max(1, after.minute - before.minute);
-        return { ...frame, tempC: lerp(before.tempC, after.tempC, amount) };
-      });
-    }
-  }
 
   /**
    * Builds a true water-only raster mask from IGN's public orthophoto. Starting at
@@ -424,42 +195,11 @@
     applyWaterMask() { this.waterMask.apply(this.ctx); }
   }
 
-  /** Renders a smoothly changing thermal surface within the channel boundary. */
-  class TemperatureLayer extends CanvasLayer {
-    constructor(waterMask) { super({ pane: 'temperaturePane' }, waterMask); this.currentTemp = 18.5; this.targetTemp = 18.5; }
-    setSample(sample) { this.targetTemp = sample.tempC; this.draw(); }
-    color(temp, light = 0) {
-      const t = clamp((18.5 - temp) / 2, 0, 1);
-      const warm = [216, 137, 69]; const cold = [18, 74, 116];
-      return warm.map((value, index) => Math.round(clamp(lerp(value, cold[index], t) + light, 0, 255)));
-    }
-    draw() {
-      if (!this.ctx || !this.map) return;
-      this.currentTemp = lerp(this.currentTemp, this.targetTemp, .22);
-      const ctx = this.ctx; ctx.clearRect(0, 0, this.width, this.height); ctx.save(); this.clipRiver();
-      const start = this.map.latLngToContainerPoint(FLOW_AXIS[0]); const finish = this.map.latLngToContainerPoint(FLOW_AXIS.at(-1));
-      const [r, g, b] = this.color(this.currentTemp); const [r2, g2, b2] = this.color(this.currentTemp, 24);
-      const gradient = ctx.createLinearGradient(start.x, start.y, finish.x, finish.y);
-      gradient.addColorStop(0, `rgba(${r2},${g2},${b2},.62)`); gradient.addColorStop(.55, `rgba(${r},${g},${b},.70)`); gradient.addColorStop(1, `rgba(${r},${g},${b},.46)`);
-      ctx.fillStyle = gradient; ctx.fillRect(0, 0, this.width, this.height);
-      // A subtle central band makes the faster thalweg legible without changing the
-      // temperature reading; speed itself is communicated by the particle lanes.
-      ctx.strokeStyle = 'rgba(125, 232, 248, .10)'; ctx.lineCap = 'round';
-      for (let index = 1; index < this.coursePoints.length; index++) {
-        ctx.beginPath(); ctx.moveTo(this.coursePoints[index - 1].x, this.coursePoints[index - 1].y); ctx.lineTo(this.coursePoints[index].x, this.coursePoints[index].y);
-        ctx.lineWidth = (this.channel.halfWidths[index - 1] + this.channel.halfWidths[index]) * .55; ctx.stroke();
-      }
-      ctx.globalCompositeOperation = 'screen';
-      const sheen = ctx.createLinearGradient(0, 0, this.width, this.height);
-      sheen.addColorStop(0, 'rgba(255,255,255,.12)'); sheen.addColorStop(.55, 'rgba(255,255,255,0)'); sheen.addColorStop(1, 'rgba(6,182,212,.13)');
-      ctx.fillStyle = sheen; ctx.fillRect(0, 0, this.width, this.height); ctx.restore(); this.applyWaterMask();
-    }
-  }
 
-  /** Particle field runs along local river tangents and adjusts count/velocity in real time. */
+  /** Optional tide-direction illustration. Motion never encodes water speed. */
   class CurrentParticleLayer extends CanvasLayer {
     constructor(waterMask) {
-      super({ pane: 'particlePane' }, waterMask); this.particles = []; this.sample = { speed: 0, direction: 'slack' };
+      super({ pane: 'particlePane' }, waterMask); this.particles = []; this.sample = { direction: 'unknown' }; this.enabled = false;
       this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       this.lastFrame = performance.now(); this.animation = requestAnimationFrame(time => this.animate(time));
     }
@@ -467,12 +207,9 @@
     onRemove(map) { cancelAnimationFrame(this.animation); super.onRemove(map); }
     setSample(sample) { this.sample = sample; this.ensureParticles(); }
     ensureParticles() {
-      const target = this.reducedMotion ? 18 : Math.round(18 + clamp(this.sample.speed / .8, 0, 1) * 132);
+      const target = this.enabled && this.sample.direction !== 'unknown' ? 32 : 0;
       while (this.particles.length < target) {
-        const laneRoll = Math.random();
-        const lane = laneRoll < .56 ? 'core' : laneRoll < .78 ? 'left-edge' : 'right-edge';
-        const offset = lane === 'core' ? (Math.random() - .5) * .48 : lane === 'left-edge' ? -.52 - Math.random() * .34 : .52 + Math.random() * .34;
-        this.particles.push({ progress: Math.random(), offset, lane, age: Math.random() });
+        this.particles.push({ progress: Math.random(), offset: (Math.random() - .5) * 1.2 });
       }
       this.particles.length = target;
     }
@@ -492,15 +229,12 @@
       const delta = Math.min((now - this.lastFrame) / 1000, .05); this.lastFrame = now;
       if (this.ctx && this.map) {
         this.ensureParticles(); const ctx = this.ctx; ctx.clearRect(0, 0, this.width, this.height); ctx.save(); this.clipRiver();
-        const speedFactor = clamp(this.sample.speed / .8, 0, 1); const sign = this.sample.direction === 'downstream' ? -1 : 1;
-        this.particles.forEach((particle, index) => {
-          const laneRatio = particle.lane === 'core' ? 1.18 : particle.lane === 'left-edge' ? .52 : .62;
-          if (!this.reducedMotion) particle.progress = (particle.progress + sign * (speedFactor * .13 * laneRatio + .001 * laneRatio) * delta + 1) % 1;
-          const point = this.pointOnPath(particle.progress, particle.offset); const tail = (8 + speedFactor * 22) * laneRatio;
-          const alpha = (.18 + speedFactor * .67 + Math.sin(now / 700 + index) * .08) * laneRatio;
+        const sign = this.sample.direction === 'downstream' ? -1 : 1;
+        this.particles.forEach(particle => {
+          if (!this.reducedMotion) particle.progress = (particle.progress + sign * .025 * delta + 1) % 1;
+          const point = this.pointOnPath(particle.progress, particle.offset); const tail = 14;
           ctx.beginPath(); ctx.moveTo(point.x - point.dx * tail * sign, point.y - point.dy * tail * sign); ctx.lineTo(point.x, point.y);
-          const color = particle.lane === 'core' ? '191,247,255' : '196,181,253';
-          ctx.strokeStyle = `rgba(${color},${alpha})`; ctx.lineWidth = (1 + speedFactor * 1.4) * laneRatio; ctx.shadowBlur = particle.lane === 'core' ? 7 : 3; ctx.shadowColor = particle.lane === 'core' ? 'rgba(34,211,238,.8)' : 'rgba(167,139,250,.5)'; ctx.stroke();
+          ctx.strokeStyle = 'rgba(191,247,255,.6)'; ctx.lineWidth = 2; ctx.stroke();
         });
         ctx.restore(); this.applyWaterMask();
       }
@@ -513,7 +247,6 @@
     constructor(day) {
       this.day = day;
       this.map = L.map('map', { zoomControl: false, preferCanvas: true, minZoom: 14, maxZoom: 18, maxBounds: [[42.428, -8.65], [42.448, -8.61]] });
-      this.map.createPane('temperaturePane').style.zIndex = 320;
       this.map.createPane('coursePane').style.zIndex = 430;
       this.map.createPane('particlePane').style.zIndex = 460;
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -525,9 +258,8 @@
         // The course uses this exact same water test as the thermal and flow layers.
         // Wait for Leaflet's completed layout before measuring screen-space banks.
         this.scheduleConstrainedCourse();
-        this.temperature.sync(); this.particles.sync();
+        this.particles.sync();
       });
-      this.temperature = new TemperatureLayer(this.waterMask).addTo(this.map);
       this.particles = new CurrentParticleLayer(this.waterMask).addTo(this.map);
       this.recenter();
       // Re-measure after a viewport transform. Without this, the first render can
@@ -628,7 +360,7 @@
       const labelMarker = L.marker(labelLatLng, { pane: 'coursePane', interactive: false, icon: L.divIcon({ className: 'course-label', iconAnchor: [0, 0], html: label }) }).addTo(this.map);
       return [marker, labelMarker];
     }
-    update(sample) { this.temperature.setSample(sample); this.particles.setSample(sample); }
+    update(sample) { this.particles.setSample(sample); }
     recenter() { this.map.fitBounds(L.latLngBounds(this.referenceRoute()).pad(.18), { paddingTopLeft: [20, 105], paddingBottomRight: [20, 160] }); }
     zoomIn() { this.map.zoomIn(); }
     zoomOut() { this.map.zoomOut(); }
@@ -648,40 +380,30 @@
         tick.style.left = `${((event.minute - day.startMinute) / (day.endMinute - day.startMinute)) * 100}%`; this.ticks.appendChild(tick);
       });
     }
-    source(result) {
-      const badge = this.el['data-badge'];
-      badge.className = `data-badge ${result.mode === 'temperature-model' ? 'live' : ''}`;
-      badge.textContent = result.mode === 'temperature-model' ? 'Published tide · temp model' : 'Published tide timing';
-      badge.title = result.updated
-        ? `Pontevedra tide timing remains pinned to published extrema. Open-Meteo regional sea-surface-temperature model updated ${new Date(result.updated).toLocaleString()}. Current velocity remains a clearly labelled planning scenario.`
-        : 'Tide height and phase are pinned to published Pontevedra high/low-water times. Current velocity and temperature are planning scenarios, not measurements or an official river-current forecast.';
-    }
-    strategy(sample) {
-      if (sample.speed >= .55) return 'High-flow caution — not a race-safety clearance. River flow can vary sharply across the channel and around structures. Use only the clear, buoyed course line; do not chase the bank near bridges, shallow water, obstacles, or eddies. Where the buoyed line is clear and officials permit it, slower near-bank water may reduce exposure to the faster mid-channel current.';
-      let advice;
-      if (sample.speed < .05) advice = sample.tidePercent > 95 ? 'High water and slack. Reset your pacing expectations, choose a clean sight line, and prepare for changing conditions.' : 'Slack water. Use the cleanest line and settle into rhythm before the flood builds.';
-      else if (sample.direction === 'downstream') advice = 'Ebb tide is underway. Expect the current to favour the downstream leg and adjust sighting and pacing for the return.';
-      else if (sample.minute < 420) advice = 'The flood is building. The upstream leg gains an assist; save enough to stay composed against the head-current return.';
-      else if (sample.minute < 510) advice = 'High buoyancy advantage. Upstream leg will feel fast. Prepare for a hard head-current fight on the downstream return leg.';
-      else if (sample.minute < 555) advice = 'Peak flood: the course has its strongest split. Do not overpace with the upstream assist; control effort for the return.';
-      else advice = 'Flood is easing. The upstream assist is fading, but keep your exit line deliberate as the channel approaches slack.';
-      return advice;
-    }
     update(sample, model) {
-      const tide = model.tideStage(sample); const tempF = sample.tempC * 9 / 5 + 32;
-      const direction = sample.speed < .05 ? 'Slack water' : sample.direction === 'upstream' ? 'Upstream assist' : 'Downstream assist';
-      this.el['hud-time'].textContent = timeLabel(sample.minute); this.el['tide-stage'].textContent = tide;
-      this.el['tide-detail'].textContent = `${Math.round(sample.tidePercent)}% full`;
-      this.el['water-temp'].textContent = `${sample.tempC.toFixed(1)}°C`; this.el['water-temp-f'].textContent = `${tempF.toFixed(1)}°F`;
-      this.el['current-speed'].innerHTML = `${sample.speed.toFixed(1)} <span class="font-sans text-sm font-normal text-cyan-100/70">m/s</span>`;
-      this.el['current-direction'].textContent = direction; this.el['strategy-text'].textContent = this.strategy(sample);
-      this.el['core-flow'].textContent = `${(sample.speed * 1.18).toFixed(1)} m/s`;
-      this.el['edge-flow'].textContent = `${(sample.speed * .57).toFixed(1)} m/s`;
-      const closest = this.day.events.find(event => Math.abs(event.minute - sample.minute) <= 5);
-      this.el['event-label'].textContent = closest ? closest.label : `${tide} · ${Math.round(sample.tidePercent)}% tide`;
+      const tide = model.tideStage(sample);
+      this.el['hud-time'].textContent = timeLabel(sample.minute);
+      this.el['tide-stage'].textContent = tide;
+      const high = this.day.tideEvents.find(event => event.percent === 100);
+      this.el['tide-detail'].textContent = 'High water ' + timeLabel(high.minute) + ' CEST';
+      this.el['water-temp'].textContent = 'Unknown';
+      this.el['water-temp-f'].textContent = 'No course measurement';
+      this.el['current-speed'].textContent = sample.inRaceWindow ? (this.day.id === 'sprint' ? 'Low current late in race' : 'Organizer: “NO CURRENT”') : 'Outside organizer race window';
+      this.el['current-direction'].textContent = 'Course speed and slack timing unverified';
+      this.el['strategy-text'].textContent = model.interpretation(sample);
+      this.el['core-flow'].textContent = 'Unknown';
+      this.el['edge-flow'].textContent = 'Unknown';
+      this.el['data-badge'].textContent = 'Reviewed 23 Sep';
+      document.getElementById('organizer-guidance').textContent = 'Organizer: “' + this.day.guidance + '” · ' + timeLabel(this.day.raceStart) + '–' + timeLabel(this.day.raceEnd) + ' CEST. Qualitative guidance; no measured speeds supplied.';
+      const regional = model.regional(sample.minute);
+      document.getElementById('regional-speed').textContent = regional ? regional.min.toFixed(2) + '–' + regional.max.toFixed(2) + ' m/s' : 'No snapshot for this date/time';
+      document.getElementById('regional-detail').textContent = regional ? regional.direction + ' · ' + timeLabel(regional.lower) + (regional.upper === regional.lower ? '' : '–' + timeLabel(regional.upper)) + ' CEST hourly cells' : 'The saved regional forecast covers 24 September, 12:00–19:00 CEST only.';
+      const closest = this.day.events.filter(event => Math.abs(event.minute - sample.minute) <= 5).sort((a,b) => Math.abs(a.minute - sample.minute) - Math.abs(b.minute - sample.minute))[0];
+      this.el['event-label'].textContent = closest ? closest.label : tide + ' · CEST (UTC+2)';
       this.ticks.querySelectorAll('.event-tick').forEach(tick => tick.classList.toggle('active', Math.abs(Number(tick.dataset.minute) - sample.minute) <= 5));
+      document.getElementById('selected-time').value = timeLabel(sample.minute);
     }
-    announce(sample) { this.el['live-region'].textContent = `${timeLabel(sample.minute)}, ${sample.speed.toFixed(1)} metres per second, ${sample.direction}`; }
+    announce(sample) { this.el['live-region'].textContent = timeLabel(sample.minute) + ' CEST, ' + sample.stage + ', course current speed unknown'; }
   }
 
   class PlaybackController {
@@ -703,7 +425,7 @@
       document.getElementById('timeline-end').textContent = timeLabel(this.endMinute).replace(' AM', '').replace(' PM', '');
     }
     emit(announce = false) { this.slider.value = this.minute; this.onChange(this.minute, announce); }
-    play() { if (this.minute >= this.endMinute) this.minute = this.startMinute; this.playing = true; this.last = performance.now(); this.frame = requestAnimationFrame(time => this.tick(time)); }
+    play() { this.pause(); if (this.minute >= this.endMinute) this.minute = this.startMinute; this.playing = true; this.last = performance.now(); this.frame = requestAnimationFrame(time => this.tick(time)); }
     pause() { this.playing = false; cancelAnimationFrame(this.frame); }
     reset() { this.pause(); this.minute = this.startMinute; this.emit(true); }
     cycleSpeed() {
@@ -720,22 +442,27 @@
   }
 
   class App {
-    async init() {
+    init() {
       const requestedDay = new URLSearchParams(window.location.search).get('day');
-      this.day = RACE_DAYS[requestedDay] || RACE_DAYS.standard;
-      this.model = new TimelineModel(this.day.frames, this.day, true); this.map = new MapView(this.day); this.hud = new TelemetryView(this.day);
+      this.day = RACE_DAYS[requestedDay] || RACE_DAYS.sprint;
+      this.model = new TimelineModel(this.day); this.map = new MapView(this.day); this.hud = new TelemetryView(this.day);
       this.playback = new PlaybackController((minute, announce) => this.render(minute, announce));
       document.getElementById('recenter-button').addEventListener('click', () => this.map.recenter());
       document.getElementById('zoom-in-button').addEventListener('click', () => this.map.zoomIn());
       document.getElementById('zoom-out-button').addEventListener('click', () => this.map.zoomOut());
       document.querySelectorAll('[data-race-day]').forEach(button => button.addEventListener('click', () => this.selectDay(button.dataset.raceDay)));
-      await this.selectDay(this.day.id);
+      document.getElementById('show-tide-arrows').addEventListener('change', event => { this.map.particles.enabled = event.target.checked; this.render(this.playback.minute); });
+      document.getElementById('selected-time').addEventListener('change', event => {
+        if (!event.target.value) return;
+        const [hour, minute] = event.target.value.split(':').map(Number);
+        this.playback.pause(); this.playback.minute = clamp(hour * 60 + minute, this.day.startMinute, this.day.endMinute); this.playback.emit(true);
+      });
+      this.selectDay(this.day.id);
     }
-    async selectDay(dayId) {
+    selectDay(dayId) {
       const day = RACE_DAYS[dayId];
       if (!day) return;
-      const request = (this.requestId || 0) + 1; this.requestId = request;
-      this.playback?.pause(); this.day = day; this.model = new TimelineModel(day.frames, day, true);
+      this.playback?.pause(); this.day = day; this.model = new TimelineModel(day);
       this.map?.setDay(day); this.hud?.setDay(day);
       document.getElementById('event-date').textContent = `World Triathlon Championships · ${day.dateLabel}`;
       document.getElementById('event-context').textContent = `${day.title} · ${day.courseLabel}`;
@@ -746,10 +473,9 @@
         const selected = button.dataset.raceDay === day.id;
         button.classList.toggle('active', selected); button.setAttribute('aria-pressed', String(selected));
       });
-      this.playback.setDay(day); this.playback.reset();
-      const result = await new MarineDataProvider(day).load();
-      if (request !== this.requestId) return;
-      this.model = new TimelineModel(result.frames, day, result.mode !== 'temperature-model'); this.hud.source(result); this.render(this.playback.minute);
+      this.playback.setDay(day); this.playback.minute = day.initialMinute; this.playback.emit();
+      const timeInput = document.getElementById('selected-time');
+      timeInput.min = timeLabel(day.startMinute); timeInput.max = timeLabel(day.endMinute);
     }
     render(minute, announce = false) { const sample = this.model.sample(minute); this.map.update(sample); this.hud.update(sample, this.model); if (announce) this.hud.announce(sample); }
   }
