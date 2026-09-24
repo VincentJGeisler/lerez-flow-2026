@@ -1,239 +1,241 @@
-/* Official regional forecast snapshot. Raw responses retained for audit. */
+/* Automatically refreshed official regional forecast snapshots. */
 (() => {
-  const legacySnapshot = {
-  "provider": "MeteoGalicia MOHID Vigo/Pontevedra",
-  "run": "2026-09-23T00:00:00Z",
-  "retrievedOn": "2026-09-23",
-  "date": "2026-09-24",
-  "resolutionMetres": 300,
-  "depth": "Not specified in the retrieved current-variable metadata",
-  "metadata": "https://thredds-meteo.cesga.es/thredds/ncss/grid/MyCoast/MOHID/vigo/MyCOAST_V1_MeteoGalicia_MOHID_vigo_01hr_2026092300_PR.ncml/dataset.xml",
-  "cells": [
-    {
-      "name": "start",
-      "requested": {
-        "lat": 42.43455,
-        "lon": -8.63615
-      },
-      "reported": {
-        "lat": 42.434,
-        "lon": -8.637
-      },
-      "url": "https://thredds-meteo.cesga.es/thredds/ncss/grid/MyCoast/MOHID/vigo/MyCOAST_V1_MeteoGalicia_MOHID_vigo_01hr_2026092300_PR.ncml?var=uo&var=vo&var=water_level&latitude=42.43455&longitude=-8.63615&time_start=2026-09-24T10%3A00%3A00Z&time_end=2026-09-24T17%3A00%3A00Z&accept=csv",
-      "rows": [
-        {
-          "utc": "2026-09-24T10:00:00Z",
-          "minute": 720,
-          "u": -0.08950075,
-          "v": 0,
-          "waterLevel": -0.31236365
-        },
-        {
-          "utc": "2026-09-24T11:00:00Z",
-          "minute": 780,
-          "u": -0.08113504,
-          "v": 0,
-          "waterLevel": -0.28422427
-        },
-        {
-          "utc": "2026-09-24T12:00:00Z",
-          "minute": 840,
-          "u": 0.027164882,
-          "v": 0,
-          "waterLevel": 0.08344073
-        },
-        {
-          "utc": "2026-09-24T13:00:00Z",
-          "minute": 900,
-          "u": 0.08398898,
-          "v": 0,
-          "waterLevel": 0.74188066
-        },
-        {
-          "utc": "2026-09-24T14:00:00Z",
-          "minute": 960,
-          "u": -0.072401576,
-          "v": 0,
-          "waterLevel": 0.8832065
-        },
-        {
-          "utc": "2026-09-24T15:00:00Z",
-          "minute": 1020,
-          "u": -0.09407237,
-          "v": 0,
-          "waterLevel": 0.5878491
-        },
-        {
-          "utc": "2026-09-24T16:00:00Z",
-          "minute": 1080,
-          "u": -0.12244268,
-          "v": 0,
-          "waterLevel": 0.28428772
-        },
-        {
-          "utc": "2026-09-24T17:00:00Z",
-          "minute": 1140,
-          "u": -0.11224899,
-          "v": 0,
-          "waterLevel": 0.060264267
-        }
-      ],
-      "rawCsv": "time,station,latitude[unit=\"degrees_north\"],longitude[unit=\"degrees_east\"],uo[unit=\"m/s\"],vo[unit=\"m/s\"],water_level[unit=\"m\"]\n2026-09-24T10:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,-0.08950075,0.0,-0.31236365\n2026-09-24T11:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,-0.08113504,0.0,-0.28422427\n2026-09-24T12:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,0.027164882,0.0,0.08344073\n2026-09-24T13:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,0.08398898,0.0,0.74188066\n2026-09-24T14:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,-0.072401576,0.0,0.8832065\n2026-09-24T15:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,-0.09407237,0.0,0.5878491\n2026-09-24T16:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,-0.12244268,0.0,0.28428772\n2026-09-24T17:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,-0.11224899,0.0,0.060264267"
-    },
-    {
-      "name": "center",
-      "requested": {
-        "lat": 42.4357,
-        "lon": -8.634
-      },
-      "reported": {
-        "lat": 42.434,
-        "lon": -8.633
-      },
-      "url": "https://thredds-meteo.cesga.es/thredds/ncss/grid/MyCoast/MOHID/vigo/MyCOAST_V1_MeteoGalicia_MOHID_vigo_01hr_2026092300_PR.ncml?var=uo&var=vo&var=water_level&latitude=42.4357&longitude=-8.634&time_start=2026-09-24T10%3A00%3A00Z&time_end=2026-09-24T17%3A00%3A00Z&accept=csv",
-      "rows": [
-        {
-          "utc": "2026-09-24T10:00:00Z",
-          "minute": 720,
-          "u": -0.04109601,
-          "v": -0.040143833,
-          "waterLevel": -0.31220454
-        },
-        {
-          "utc": "2026-09-24T11:00:00Z",
-          "minute": 780,
-          "u": -0.038290918,
-          "v": 0.0036676826,
-          "waterLevel": -0.2844818
-        },
-        {
-          "utc": "2026-09-24T12:00:00Z",
-          "minute": 840,
-          "u": 0.0038080795,
-          "v": 0.080932155,
-          "waterLevel": 0.084154695
-        },
-        {
-          "utc": "2026-09-24T13:00:00Z",
-          "minute": 900,
-          "u": 0.03714887,
-          "v": 0.082870066,
-          "waterLevel": 0.7438528
-        },
-        {
-          "utc": "2026-09-24T14:00:00Z",
-          "minute": 960,
-          "u": -0.024136748,
-          "v": -0.0072745844,
-          "waterLevel": 0.88433707
-        },
-        {
-          "utc": "2026-09-24T15:00:00Z",
-          "minute": 1020,
-          "u": -0.03955867,
-          "v": -0.043909896,
-          "waterLevel": 0.5886302
-        },
-        {
-          "utc": "2026-09-24T16:00:00Z",
-          "minute": 1080,
-          "u": -0.05065228,
-          "v": -0.07997325,
-          "waterLevel": 0.28510135
-        },
-        {
-          "utc": "2026-09-24T17:00:00Z",
-          "minute": 1140,
-          "u": -0.04699146,
-          "v": -0.09897407,
-          "waterLevel": 0.060858496
-        }
-      ],
-      "rawCsv": "time,station,latitude[unit=\"degrees_north\"],longitude[unit=\"degrees_east\"],uo[unit=\"m/s\"],vo[unit=\"m/s\"],water_level[unit=\"m\"]\n2026-09-24T10:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,-0.04109601,-0.040143833,-0.31220454\n2026-09-24T11:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,-0.038290918,0.0036676826,-0.2844818\n2026-09-24T12:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,0.0038080795,0.080932155,0.084154695\n2026-09-24T13:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,0.03714887,0.082870066,0.7438528\n2026-09-24T14:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,-0.024136748,-0.0072745844,0.88433707\n2026-09-24T15:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,-0.03955867,-0.043909896,0.5886302\n2026-09-24T16:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,-0.05065228,-0.07997325,0.28510135\n2026-09-24T17:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,-0.04699146,-0.09897407,0.060858496"
-    },
-    {
-      "name": "turn",
-      "requested": {
-        "lat": 42.43693,
-        "lon": -8.63273
-      },
-      "reported": {
-        "lat": 42.437,
-        "lon": -8.633
-      },
-      "url": "https://thredds-meteo.cesga.es/thredds/ncss/grid/MyCoast/MOHID/vigo/MyCOAST_V1_MeteoGalicia_MOHID_vigo_01hr_2026092300_PR.ncml?var=uo&var=vo&var=water_level&latitude=42.43693&longitude=-8.63273&time_start=2026-09-24T10%3A00%3A00Z&time_end=2026-09-24T17%3A00%3A00Z&accept=csv",
-      "rows": [
-        {
-          "utc": "2026-09-24T10:00:00Z",
-          "minute": 720,
-          "u": -3.571815e-18,
-          "v": -0.058332164,
-          "waterLevel": -0.30543834
-        },
-        {
-          "utc": "2026-09-24T11:00:00Z",
-          "minute": 780,
-          "u": 5.6862417e-19,
-          "v": 0.009286338,
-          "waterLevel": -0.277991
-        },
-        {
-          "utc": "2026-09-24T12:00:00Z",
-          "minute": 840,
-          "u": 3.6875807e-18,
-          "v": 0.14486805,
-          "waterLevel": 0.089567155
-        },
-        {
-          "utc": "2026-09-24T13:00:00Z",
-          "minute": 900,
-          "u": 5.2013866e-18,
-          "v": 0.15140481,
-          "waterLevel": 0.7509373
-        },
-        {
-          "utc": "2026-09-24T14:00:00Z",
-          "minute": 960,
-          "u": -3.6324255e-18,
-          "v": -0.024898473,
-          "waterLevel": 0.8932582
-        },
-        {
-          "utc": "2026-09-24T15:00:00Z",
-          "minute": 1020,
-          "u": -5.3759684e-18,
-          "v": -0.06934012,
-          "waterLevel": 0.5981403
-        },
-        {
-          "utc": "2026-09-24T16:00:00Z",
-          "minute": 1080,
-          "u": -7.848018e-18,
-          "v": -0.12777252,
-          "waterLevel": 0.29435736
-        },
-        {
-          "utc": "2026-09-24T17:00:00Z",
-          "minute": 1140,
-          "u": -8.815916e-18,
-          "v": -0.15979443,
-          "waterLevel": 0.06908709
-        }
-      ],
-      "rawCsv": "time,station,latitude[unit=\"degrees_north\"],longitude[unit=\"degrees_east\"],uo[unit=\"m/s\"],vo[unit=\"m/s\"],water_level[unit=\"m\"]\n2026-09-24T10:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,-3.571815E-18,-0.058332164,-0.30543834\n2026-09-24T11:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,5.6862417E-19,0.009286338,-0.277991\n2026-09-24T12:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,3.6875807E-18,0.14486805,0.089567155\n2026-09-24T13:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,5.2013866E-18,0.15140481,0.7509373\n2026-09-24T14:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,-3.6324255E-18,-0.024898473,0.8932582\n2026-09-24T15:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,-5.3759684E-18,-0.06934012,0.5981403\n2026-09-24T16:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,-7.848018E-18,-0.12777252,0.29435736\n2026-09-24T17:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,-8.815916E-18,-0.15979443,0.06908709"
-    }
-  ]
-};
   const snapshot = {
-    schemaVersion: 2,
-    courseCells: [
-      { name: 'start', requested: { lat: 42.43455, lon: -8.63615 } },
-      { name: 'center', requested: { lat: 42.4357, lon: -8.634 } },
-      { name: 'turn', requested: { lat: 42.43693, lon: -8.63273 } }
-    ],
-    retrievedAt: null,
-    forecastByDate: { [legacySnapshot.date]: legacySnapshot }
-  };
+  "schemaVersion": 2,
+  "provider": "MeteoGalicia MOHID Vigo/Pontevedra",
+  "metadata": "https://thredds-meteo.cesga.es/thredds/ncss/grid/MyCoast/MOHID/vigo/latest.ncml/dataset.xml",
+  "retrievedAt": "2026-09-24T16:54:45.216Z",
+  "forecastByDate": {
+    "2026-09-24": {
+      "provider": "MeteoGalicia MOHID Vigo/Pontevedra",
+      "run": "2026-09-24T00:00:00.000Z",
+      "retrievedAt": "2026-09-24T16:54:45.216Z",
+      "date": "2026-09-24",
+      "resolutionMetres": 300,
+      "depth": "Not specified in the retrieved current-variable metadata",
+      "metadata": "https://thredds-meteo.cesga.es/thredds/ncss/grid/MyCoast/MOHID/vigo/latest.ncml/dataset.xml",
+      "coverage": {
+        "startUtc": "2026-09-24T10:00:00.000Z",
+        "endUtc": "2026-09-24T17:00:00.000Z"
+      },
+      "cells": [
+        {
+          "requested": {
+            "lat": 42.43455,
+            "lon": -8.63615
+          },
+          "reported": {
+            "lat": 42.434,
+            "lon": -8.637
+          },
+          "rows": [
+            {
+              "utc": "2026-09-24T10:00:00.000Z",
+              "minute": 720,
+              "u": -0.08065391,
+              "v": 0,
+              "waterLevel": -0.29070267
+            },
+            {
+              "utc": "2026-09-24T11:00:00.000Z",
+              "minute": 780,
+              "u": -0.076139845,
+              "v": 0,
+              "waterLevel": -0.31832662
+            },
+            {
+              "utc": "2026-09-24T12:00:00.000Z",
+              "minute": 840,
+              "u": -0.006410068,
+              "v": 0,
+              "waterLevel": -0.19197994
+            },
+            {
+              "utc": "2026-09-24T13:00:00.000Z",
+              "minute": 900,
+              "u": 0.11129718,
+              "v": 0,
+              "waterLevel": 0.42633957
+            },
+            {
+              "utc": "2026-09-24T14:00:00.000Z",
+              "minute": 960,
+              "u": 0.05872261,
+              "v": 0,
+              "waterLevel": 1.0715526
+            },
+            {
+              "utc": "2026-09-24T15:00:00.000Z",
+              "minute": 1020,
+              "u": -0.064072035,
+              "v": 0,
+              "waterLevel": 0.8865393
+            },
+            {
+              "utc": "2026-09-24T16:00:00.000Z",
+              "minute": 1080,
+              "u": -0.085634634,
+              "v": 0,
+              "waterLevel": 0.55353594
+            },
+            {
+              "utc": "2026-09-24T17:00:00.000Z",
+              "minute": 1140,
+              "u": -0.07777087,
+              "v": 0,
+              "waterLevel": 0.23322423
+            }
+          ],
+          "name": "start",
+          "url": "https://thredds-meteo.cesga.es/thredds/ncss/grid/MyCoast/MOHID/vigo/latest.ncml?var=uo&var=vo&var=water_level&latitude=42.43455&longitude=-8.63615&time_start=2026-09-24T10%3A00%3A00.000Z&time_end=2026-09-24T17%3A00%3A00.000Z&accept=csv",
+          "rawCsv": "time,station,latitude[unit=\"degrees_north\"],longitude[unit=\"degrees_east\"],uo[unit=\"m/s\"],vo[unit=\"m/s\"],water_level[unit=\"m\"]\n2026-09-24T10:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,-0.08065391,0.0,-0.29070267\n2026-09-24T11:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,-0.076139845,0.0,-0.31832662\n2026-09-24T12:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,-0.006410068,0.0,-0.19197994\n2026-09-24T13:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,0.11129718,0.0,0.42633957\n2026-09-24T14:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,0.05872261,0.0,1.0715526\n2026-09-24T15:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,-0.064072035,0.0,0.8865393\n2026-09-24T16:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,-0.085634634,0.0,0.55353594\n2026-09-24T17:00:00Z,GridPointRequestedAt[42,435N_8,636W],42.434,-8.637,-0.07777087,0.0,0.23322423"
+        },
+        {
+          "requested": {
+            "lat": 42.4357,
+            "lon": -8.634
+          },
+          "reported": {
+            "lat": 42.434,
+            "lon": -8.633
+          },
+          "rows": [
+            {
+              "utc": "2026-09-24T10:00:00.000Z",
+              "minute": 720,
+              "u": -0.037491933,
+              "v": -0.090087265,
+              "waterLevel": -0.29038784
+            },
+            {
+              "utc": "2026-09-24T11:00:00.000Z",
+              "minute": 780,
+              "u": -0.035158627,
+              "v": -0.09055165,
+              "waterLevel": -0.31813496
+            },
+            {
+              "utc": "2026-09-24T12:00:00.000Z",
+              "minute": 840,
+              "u": -0.008751359,
+              "v": -0.026924187,
+              "waterLevel": -0.19253957
+            },
+            {
+              "utc": "2026-09-24T13:00:00.000Z",
+              "minute": 900,
+              "u": 0.023927381,
+              "v": 0.060800444,
+              "waterLevel": 0.42836082
+            },
+            {
+              "utc": "2026-09-24T14:00:00.000Z",
+              "minute": 960,
+              "u": 0.035160888,
+              "v": -0.0009239855,
+              "waterLevel": 1.0738288
+            },
+            {
+              "utc": "2026-09-24T15:00:00.000Z",
+              "minute": 1020,
+              "u": -0.025057461,
+              "v": -0.07493788,
+              "waterLevel": 0.88729113
+            },
+            {
+              "utc": "2026-09-24T16:00:00.000Z",
+              "minute": 1080,
+              "u": -0.03323388,
+              "v": -0.103732795,
+              "waterLevel": 0.55433047
+            },
+            {
+              "utc": "2026-09-24T17:00:00.000Z",
+              "minute": 1140,
+              "u": -0.029480372,
+              "v": -0.09920202,
+              "waterLevel": 0.23376547
+            }
+          ],
+          "name": "center",
+          "url": "https://thredds-meteo.cesga.es/thredds/ncss/grid/MyCoast/MOHID/vigo/latest.ncml?var=uo&var=vo&var=water_level&latitude=42.4357&longitude=-8.634&time_start=2026-09-24T10%3A00%3A00.000Z&time_end=2026-09-24T17%3A00%3A00.000Z&accept=csv",
+          "rawCsv": "time,station,latitude[unit=\"degrees_north\"],longitude[unit=\"degrees_east\"],uo[unit=\"m/s\"],vo[unit=\"m/s\"],water_level[unit=\"m\"]\n2026-09-24T10:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,-0.037491933,-0.090087265,-0.29038784\n2026-09-24T11:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,-0.035158627,-0.09055165,-0.31813496\n2026-09-24T12:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,-0.008751359,-0.026924187,-0.19253957\n2026-09-24T13:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,0.023927381,0.060800444,0.42836082\n2026-09-24T14:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,0.035160888,-9.239855E-4,1.0738288\n2026-09-24T15:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,-0.025057461,-0.07493788,0.88729113\n2026-09-24T16:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,-0.03323388,-0.103732795,0.55433047\n2026-09-24T17:00:00Z,GridPointRequestedAt[42,436N_8,634W],42.434,-8.633,-0.029480372,-0.09920202,0.23376547"
+        },
+        {
+          "requested": {
+            "lat": 42.43693,
+            "lon": -8.63273
+          },
+          "reported": {
+            "lat": 42.437,
+            "lon": -8.633
+          },
+          "rows": [
+            {
+              "utc": "2026-09-24T10:00:00.000Z",
+              "minute": 720,
+              "u": -8.088005e-18,
+              "v": -0.13208714,
+              "waterLevel": -0.28747883
+            },
+            {
+              "utc": "2026-09-24T11:00:00.000Z",
+              "minute": 780,
+              "u": -7.479391e-18,
+              "v": -0.12214773,
+              "waterLevel": -0.3146601
+            },
+            {
+              "utc": "2026-09-24T12:00:00.000Z",
+              "minute": 840,
+              "u": -2.7558864e-18,
+              "v": -0.04500704,
+              "waterLevel": -0.18921818
+            },
+            {
+              "utc": "2026-09-24T13:00:00.000Z",
+              "minute": 900,
+              "u": 8.324e-18,
+              "v": 0.058420803,
+              "waterLevel": 0.4329095
+            },
+            {
+              "utc": "2026-09-24T14:00:00.000Z",
+              "minute": 960,
+              "u": 4.140023e-18,
+              "v": -0.020776773,
+              "waterLevel": 1.0822297
+            },
+            {
+              "utc": "2026-09-24T15:00:00.000Z",
+              "minute": 1020,
+              "u": -2.6746548e-18,
+              "v": -0.120743036,
+              "waterLevel": 0.8950905
+            },
+            {
+              "utc": "2026-09-24T16:00:00.000Z",
+              "minute": 1080,
+              "u": -6.7560696e-18,
+              "v": -0.15582505,
+              "waterLevel": 0.5624689
+            },
+            {
+              "utc": "2026-09-24T17:00:00.000Z",
+              "minute": 1140,
+              "u": -8.150944e-18,
+              "v": -0.1458279,
+              "waterLevel": 0.24082449
+            }
+          ],
+          "name": "turn",
+          "url": "https://thredds-meteo.cesga.es/thredds/ncss/grid/MyCoast/MOHID/vigo/latest.ncml?var=uo&var=vo&var=water_level&latitude=42.43693&longitude=-8.63273&time_start=2026-09-24T10%3A00%3A00.000Z&time_end=2026-09-24T17%3A00%3A00.000Z&accept=csv",
+          "rawCsv": "time,station,latitude[unit=\"degrees_north\"],longitude[unit=\"degrees_east\"],uo[unit=\"m/s\"],vo[unit=\"m/s\"],water_level[unit=\"m\"]\n2026-09-24T10:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,-8.088005E-18,-0.13208714,-0.28747883\n2026-09-24T11:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,-7.479391E-18,-0.12214773,-0.3146601\n2026-09-24T12:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,-2.7558864E-18,-0.04500704,-0.18921818\n2026-09-24T13:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,8.324E-18,0.058420803,0.4329095\n2026-09-24T14:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,4.140023E-18,-0.020776773,1.0822297\n2026-09-24T15:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,-2.6746548E-18,-0.120743036,0.8950905\n2026-09-24T16:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,-6.7560696E-18,-0.15582505,0.5624689\n2026-09-24T17:00:00Z,GridPointRequestedAt[42,437N_8,633W],42.437,-8.633,-8.150944E-18,-0.1458279,0.24082449"
+        }
+      ]
+    }
+  }
+};
   if (typeof module !== 'undefined' && module.exports) module.exports = snapshot;
   else globalThis.LerezRegional = snapshot;
 })();
